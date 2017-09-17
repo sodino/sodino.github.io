@@ -1,0 +1,661 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="baidu_union_verify" content="d1952c66cf48912e21c18c7c581f382a">
+  <meta name="360-site-verification" content="67fbcc5a67f4c65c057315b28fa0b2c8" />
+<meta name="google-site-verification" content="2GzxQ0VtXwTSUdmGm6DzcmhTzM_I9QmzCb_pzpMzD88" />
+  
+    <title>【Android】透明状态栏在App中的实现与接口设计 | Sodino&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Sodino">
+    
+    <meta name="description" content="GitHub源码:TransparentStatusbar源码中分两个app
+
+TestBasic:
+
+透明状态栏实现的示例,方便debug   
+白色/红色Titlebar的不同处理方式   
+paddingTop与fitsSystemWindows的对比  
+layer-list分层背景的使用 ">
+    
+    
+    
+    
+    <link rel="alternate" href="atom.xml" title="Sodino&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='391982416296a0d54221f59fe35250d4';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+     
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Sodino&#39;s Blog">Sodino&#39;s Blog</a></h1>
+				<a class="blog-motto">见多食广 与食巨近</a>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于我</a></li>
+					
+					<li>
+					
+                                            <form class="search" action=http://zhannei.baidu.com/cse/search target="_blank">
+                                            <label>Search</label>
+                                        <input name="s" type="hidden" value= null ><input type="text" name="q" size="30" placeholder="搜索"><br>
+					
+					</li>
+				</ul>
+                            </nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/01/20/android-transparent-statusbar/" title="【Android】透明状态栏在App中的实现与接口设计" itemprop="url">【Android】透明状态栏在App中的实现与接口设计</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://sodino.com" title="Sodino">Sodino</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2017-01-20T10:28:13.000Z" itemprop="datePublished">2017 01 20</time>
+    更新日期:<time datetime="2017-02-22T07:24:56.000Z" itemprop="dateModified">2017 02 22</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#认识透明状态栏"><span class="toc-number">1.</span> <span class="toc-text">认识透明状态栏</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#透明状态栏Api及特性"><span class="toc-number">2.</span> <span class="toc-text">透明状态栏Api及特性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#设置透明状态栏"><span class="toc-number">3.</span> <span class="toc-text">设置透明状态栏</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#处理消失的系统状态栏区域"><span class="toc-number">4.</span> <span class="toc-text">处理消失的系统状态栏区域</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#fitsSystemWindows"><span class="toc-number">5.</span> <span class="toc-text">fitsSystemWindows</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Activity中的接口设计"><span class="toc-number">6.</span> <span class="toc-text">Activity中的接口设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Fragment中的接口设计"><span class="toc-number">7.</span> <span class="toc-text">Fragment中的接口设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#白色Titlebar的处理"><span class="toc-number">8.</span> <span class="toc-text">白色Titlebar的处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#React-Native的处理"><span class="toc-number">9.</span> <span class="toc-text">React-Native的处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#小米-与-魅族-与-莫名其妙的-华为"><span class="toc-number">10.</span> <span class="toc-text">小米 与 魅族 与 (莫名其妙的)华为</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#腾讯优测UTest"><span class="toc-number">11.</span> <span class="toc-text">腾讯优测UTest</span></a></li></ol>
+		</div>
+		
+		<p>GitHub源码:<a href="https://github.com/sodino/TransparentStatusBar" target="_blank" rel="external">TransparentStatusbar</a><br>源码中分两个<code>app</code></p>
+<ul>
+<li><p><code>TestBasic</code>:</p>
+<ol>
+<li>透明状态栏实现的示例,方便debug   </li>
+<li>白色/红色<code>Titlebar</code>的不同处理方式   </li>
+<li><code>paddingTop</code>与<code>fitsSystemWindows</code>的对比  </li>
+<li><code>layer-list</code>分层背景的使用  </li>
+</ol>
+</li>
+<li><p><code>TitlebarBelowTransparentStatusBar</code>   </p>
+<ol>
+<li>示例App中统一的处理方式</li>
+<li>Activity中的接口设计</li>
+<li>Fragment中的接口设计</li>
+</ol>
+</li>
+</ul>
+<hr>
+<h2 id="认识透明状态栏"><a href="#认识透明状态栏" class="headerlink" title="认识透明状态栏"></a>认识透明状态栏</h2><p>从<code>Android4.4</code>开始引入了透明状态栏的新特性．<br>见下图，左边为传统的<code>Android</code>系统状态栏，右边为透明状态栏．　　　<br>　<br><img src="http://wx3.sinaimg.cn/mw1024/e3dc9ceagy1fbxa2ap06ij20qd07daa5.jpg" alt="what is transparent status bar"></p>
+<ul>
+<li>正常显示状态栏的图标/文字　　</li>
+<li>状态栏的背景是透明的，能透出应用的背景色．而不像之前一样是默认的黑色不可编辑．</li>
+</ul>
+<hr>
+<h2 id="透明状态栏Api及特性"><a href="#透明状态栏Api及特性" class="headerlink" title="透明状态栏Api及特性"></a>透明状态栏Api及特性</h2><p>从<code>Android 4.4(v19)</code>开始，透明状态栏特性变化很频繁，直到<code>Android 6.0(v23)</code>才真正完善稳定．　　<br>　<br>下表展示各版本所引入的新<code>Api</code>或特性．</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">Version/level</th>
+<th style="text-align:left">Features</th>
+<th style="text-align:left">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">4.4/v19</td>
+<td style="text-align:left">WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS</td>
+<td style="text-align:left">状态栏是渐变色的半透明</td>
+<td>　　</td>
+</tr>
+<tr>
+<td style="text-align:left">4.4_Watch/v20</td>
+<td style="text-align:left">OnApplyWindowInsetsListener</td>
+<td style="text-align:left">能够区分多个Inset事件与Rect信息(PS.系统状态栏属于插入区Inset的一种)</td>
+</tr>
+<tr>
+<td style="text-align:left">5.0/v21</td>
+<td style="text-align:left">WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS<br>View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN<br>View.SYSTEM_UI_FLAG_LAYOUT_STABLE</td>
+<td style="text-align:left">允许自定义状态栏背景色了，但无法控制状态栏上的文字/图标颜色</td>
+</tr>
+<tr>
+<td style="text-align:left">6.0/v23</td>
+<td style="text-align:left">View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR</td>
+<td style="text-align:left">状态栏上的图标/文字颜色的亮色模式，即颜色是暗色</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="设置透明状态栏"><a href="#设置透明状态栏" class="headerlink" title="设置透明状态栏"></a>设置透明状态栏</h2><p>根据多个版本间的<code>Api</code>及特性,<code>Java</code>代码如下:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">// Activity.java</div><div class="line">// onCreate(Bundle bundle)</div><div class="line">   </div><div class="line">            if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.LOLLIPOP) &#123;</div><div class="line">                // Android 5.0   </div><div class="line">                int visibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;   </div><div class="line">                if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.M) &#123;</div><div class="line">                    // Android 6.0   </div><div class="line">                    // 亮色模式,避免系统状态栏的图标不可见   </div><div class="line">                    // visibility |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;   </div><div class="line">                &#125;   </div><div class="line">                window.getDecorView().setSystemUiVisibility(visibility);   </div><div class="line">                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);</div><div class="line">                // 自定义状态栏背景色   </div><div class="line">                window.setStatusBarColor(Color.TRANSPARENT);   </div><div class="line">            &#125; else if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.KITKAT) &#123;</div><div class="line">                // Android 4.4   </div><div class="line">                window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);   </div><div class="line">            &#125;</div></pre></td></tr></table></figure></p>
+<blockquote>
+<p><strong>注意：</strong> 要设置透明状态栏的<code>Activity</code>其<code>theme</code>须是<code>NoTitleBar</code>.<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">// AndroidManifest.xml   </div><div class="line">     &lt;activity android:name=&quot;MyActivity&quot;   </div><div class="line">                android:theme=&quot;@android:style/Theme.NoTitleBar&quot;  </div><div class="line">            /&gt;  </div><div class="line">    // Or / 或       </div><div class="line">    // MyActivity.java</div><div class="line">    public void onCreate(Bundle bundle) &#123;  </div><div class="line">        super.onCreate(bundle);  </div><div class="line">        requestWindowFeature(Window.FEATURE_NO_TITLE);  </div><div class="line">    &#125;</div></pre></td></tr></table></figure></p>
+</blockquote>
+<p>代码执行后,界面显示效果如下图:<br><img src="http://wx2.sinaimg.cn/mw1024/e3dc9ceagy1fbxa2bbugjj20d905zglw.jpg" alt="status_bar_space"><br>可以发现系统状态栏的区域已经消失,<code>Activity</code>的<strong>contentView顶上去</strong>占据了原来属于系统状态栏的区域.<br>导致虽然<code>Back</code> <code>Title</code>虽然仍在<code>Titlebar</code>区域垂直居中,但视觉效果上受状态栏图标的影响,却不是垂直居中的效果.      </p>
+<p>所以接下来第二步就是: 以何种方式处理消失的系统状态栏区域?</p>
+<hr>
+<h2 id="处理消失的系统状态栏区域"><a href="#处理消失的系统状态栏区域" class="headerlink" title="处理消失的系统状态栏区域"></a>处理消失的系统状态栏区域</h2><p>处理方式可以有:    </p>
+<ol>
+<li>就让<code>activity</code>的<code>contentView</code>顶上去吧,不需要修改.<ul>
+<li>这种场景用于一些可全屏浏览图片/观看视频等界面.     </li>
+</ul>
+</li>
+<li>调整<code>Titlebar</code>的高度.  <ul>
+<li>可以通过设置<code>paddingTop</code>/<code>layout_height</code>.</li>
+<li>对于不同的Android版本,可以通过版本适配文件,在<code>values/dimens.xml</code>和<code>values-v19/dimens.xml</code>分别定义具体数值.</li>
+<li>调整<code>paddingTop</code>,有可能导致<code>Titlebar</code>中的内容不会再垂直居中.</li>
+<li>不适应无<code>Titlebar</code>的<code>activity</code>.   </li>
+</ul>
+</li>
+<li><code>android:fitsSystemWindows</code> &amp;&amp; <code>OnApplyWindowInsetsListener</code><ul>
+<li><code>fitsSystemWindows</code>标签可以直接对<code>View</code>添加<code>paddingXXX</code>  </li>
+<li>从<code>activity</code>的布局嵌套结构中只对<strong>第一个</strong>设置<code>fitsSystemWidnows</code>的<code>View</code>有效,无法设置设置到多个<code>View</code></li>
+<li>方式单一,对于指定的界面实现简单,但要应用于整个<code>App</code>超多<code>Activity</code>的<code>layout.xml</code>,不够灵活.</li>
+<li>不够灵活还表现在:有些<code>activity</code>的复杂效果可能会有多个<code>View</code>同时或分场合占据系统状态栏的空间,需要留出额外的修改接口.            </li>
+</ul>
+</li>
+<li>在<code>activity</code>的<code>contentView</code>的顶部再<code>addView</code>直接填充原来状态栏的区域.   </li>
+<li><code>OnApplyWindowInsetsListener</code>可以回调给开发者当前WindowInset的区域类型与区域宽高Rect信息   <ul>
+<li>和<code>fitsSystemWindows</code>一样,多个<code>View</code>设置该监听但也只有最外层的view会被调用执行.   </li>
+</ul>
+</li>
+</ol>
+<p>在实践中,本人采用了<code>1</code> <code>2</code> <code>5</code>这三种方式配合使用.   </p>
+<hr>
+<h2 id="fitsSystemWindows"><a href="#fitsSystemWindows" class="headerlink" title="fitsSystemWindows"></a>fitsSystemWindows</h2><p>我并不想用该属性.<br>这里只记录一下系统源码中的相应的方法:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">View.java</div><div class="line">  public WindowInsets dispatchApplyWindowInsets(WindowInsets insets)</div><div class="line">  private boolean fitSystemWindowsInt(Rect insets)</div><div class="line">  </div><div class="line">  // 这个方法是真正为View添加paddingXXX的地方</div><div class="line">  protected void internalSetPadding(int left, int top, int right, int bottom)</div></pre></td></tr></table></figure></p>
+<p>调试系统源码的一个方法:<br>使用<code>Android</code>自带模拟器<code>Debug</code>,断点跟进执行过程.要注意,模拟器的<code>apk level</code>要和<code>compileSdkVersion</code>及<code>buildToolsVersion</code>相对应.  </p>
+<hr>
+<h2 id="Activity中的接口设计"><a href="#Activity中的接口设计" class="headerlink" title="Activity中的接口设计"></a>Activity中的接口设计</h2><p>接口设计的原则:  </p>
+<ol>
+<li>对正常的业务布局xml的编写没有强制要求<br>如不要求强制使用<code>fitsSystemWindows</code>  </li>
+<li>不影响正常的业务Activity的java代码编写<br>如业务Actiivty不需要额外的编码量即可实现透明状态栏效果.特殊的动效Activity除外.    </li>
+<li>提供灵活的处理方式<br>可方便的开启或关闭透明状态栏功能.    </li>
+</ol>
+<p>类图如下:<br><img src="http://wx1.sinaimg.cn/mw1024/e3dc9ceagy1fbxa2d0ecyj20970bdt8u.jpg" alt="Activity">  </p>
+<ul>
+<li><code>BaseActivity</code> 是<code>App</code>中所有<code>Activity</code>的父类.<br>由于透明状态栏与<code>Activity</code>相关,所以对应的接口声明都放在<code>BaseActivity</code>中.<br>默认<code>Activity</code>的透明状态栏功能是开启的.<br>该类中几个重要函数的调用顺序为: </li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">`onCreate` → `setContentView` → `isFixTransparentStatusbar`   </div><div class="line">                                         └──true→ `fixTransparentStatusbar`</div></pre></td></tr></table></figure>
+<p>具体代码实现为:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div></pre></td><td class="code"><pre><div class="line">// WhateverActivity.java  </div><div class="line">    @Override  </div><div class="line">    protected void onCreate(Bundle savedInstanceState) &#123;  </div><div class="line">        super.onCreate(savedInstanceState);  </div><div class="line">        setContentView(R.layout.activity_main);  </div><div class="line">    &#125;  </div><div class="line"></div><div class="line">// BaseActivity.java  </div><div class="line">    @Override  </div><div class="line">    public void setContentView(View view) &#123;  </div><div class="line">        rootView = view;  </div><div class="line">        super.setContentView(view);  </div><div class="line">  </div><div class="line">        if (isFixTransparentStatusBar()) &#123;  </div><div class="line">            Window window = getWindow();  </div><div class="line">            if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.LOLLIPOP) &#123;  </div><div class="line">                int visibility = View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;  </div><div class="line">                if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.M) &#123;  </div><div class="line">                    // 亮色模式,避免系统状态栏的图标不可见</div><div class="line">                    visibility |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;</div><div class="line">                &#125;  </div><div class="line">                window.getDecorView().setSystemUiVisibility(visibility);  </div><div class="line">                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);  </div><div class="line">                window.setStatusBarColor(Color.TRANSPARENT);  </div><div class="line">  </div><div class="line">                fixTransparentStatusBar(view);  </div><div class="line">                // 最后fix一下状态栏背景白色与系统的文字图标白色的问题  </div><div class="line">                fixTransparentStatusBarWhiteTextColor(view, viewStatusbarBackground);  </div><div class="line">            &#125; else if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.KITKAT) &#123;  </div><div class="line">//                WindowManager.LayoutParams localLayoutParams = window.getAttributes();  </div><div class="line">//                localLayoutParams.flags = (WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS | localLayoutParams.flags);  </div><div class="line">                window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);  </div><div class="line"> </div><div class="line">                fixTransparentStatusBar(view); </div><div class="line">                // 最后fix一下状态栏背景白色与系统的文字图标白色的问题  </div><div class="line">                fixTransparentStatusBarWhiteTextColor(view, viewStatusbarBackground);  </div><div class="line">            &#125; else &#123;  </div><div class="line">                setStatusbarBackgroundGone();  </div><div class="line">            &#125;  </div><div class="line">        &#125; else &#123;   </div><div class="line">            setStatusbarBackgroundGone();  </div><div class="line">        &#125;  </div><div class="line">    &#125;</div></pre></td></tr></table></figure></p>
+<blockquote>
+<p><strong>注意</strong> : 由于透明状态栏是执行<code>Window.addFlags()</code>实现的,该方法又调用了<code>Window.setFlags()</code>.<br>阅读该<code>Api</code>文档,发现推荐先执行<code>setContentView</code>后执行<code>Window.setFlags()</code>.<br> <img src="http://wx4.sinaimg.cn/mw1024/e3dc9ceagy1fbxa70qyidj20iv0dxta1.jpg" alt="Window.setFlags"></p>
+</blockquote>
+<ul>
+<li><code>TitlebarActivity</code> 是通用的包含<code>Titlebar</code>的<code>Activity</code>.<br>重载了<code>setContentView()</code>,实现自动添加<code>Titlebar</code>这个通用组件,当然不需要<code>Titlebar</code>时也可以使用<code>setContentViewNoTitlebar()</code>.<br>扩展此功能,即在添加通用<code>Titlebar</code>前先添加上通用的<code>viewStatusbarBackground</code>.<br><code>setContentView()</code>的实现为:  </li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">@Override</div><div class="line">public void setContentView(View view) &#123;  </div><div class="line">    contentView = view;  </div><div class="line">   </div><div class="line">    LinearLayout linearLayout = new LinearLayout(this);  </div><div class="line">    linearLayout.setOrientation(LinearLayout.VERTICAL);  </div><div class="line">  </div><div class="line">    LayoutInflater.from(this).inflate(R.layout.transparent_status_bar_bg_view, linearLayout, true);  </div><div class="line">    viewStatusbarBackground = linearLayout.findViewById(R.id.status_bar_background);  </div><div class="line">  </div><div class="line">    LayoutInflater.from(this).inflate(R.layout.titlebar_original, linearLayout, true);  </div><div class="line">    viewTitlebar = linearLayout.findViewById(R.id.titlebar_layout);  </div><div class="line">  </div><div class="line">    initTitlebarIDs(viewTitlebar);  </div><div class="line">  </div><div class="line">    linearLayout.addView(contentView, new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));  </div><div class="line">  </div><div class="line">    super.setContentView(linearLayout);  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>其中,为了便于定位到<code>Titlebar</code>及<code>viewStatusbarBackground</code>,这两个组件的<code>id</code>都被预先定义在<code>attrs.xml</code>中.  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">// values/attrs.xml</div><div class="line">&lt;resources&gt;</div><div class="line">    &lt;item name=&quot;status_bar_background&quot; type=&quot;id&quot;/&gt;</div><div class="line">    &lt;item name=&quot;titlebar_layout&quot; type=&quot;id&quot;/&gt;</div><div class="line">&lt;/resources&gt;</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="Fragment中的接口设计"><a href="#Fragment中的接口设计" class="headerlink" title="Fragment中的接口设计"></a>Fragment中的接口设计</h2><p>有的<code>Activity</code>的显示主体是<code>Fragment</code>,接口设计的观点为不应干扰<code>Fragment</code>正常的<code>onCreateView()</code>的实现流程.<br>那么在哪个时机处理<code>Fragment</code>的<code>contentView</code>呢?<br>阅读<code>Api</code>发现了<code>Fragment::onViewCreated(View view)</code>这个方法,该方法会在<code>onCreateView()</code>返回后,立即执行,且方法参数为<code>onCreateView()</code>所返回的<code>View</code>.  </p>
+<p><img src="http://wx4.sinaimg.cn/mw1024/e3dc9ceagy1fbxa2dkkx3j207v09p0sn.jpg" alt="Fragment"></p>
+<p>Java代码实现如下:  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line">public class BaseFragment extends Fragment &#123;</div><div class="line">    @Override</div><div class="line">    public void onViewCreated(View view, Bundle savedInstanceState) &#123;</div><div class="line">        if (Build.VERSION.SDK_INT &gt;= Build.VERSION_CODES.KITKAT</div><div class="line">                &amp;&amp; isFixTransparentStatusBar()) &#123;</div><div class="line">            fixTransparentStatusBar(view);</div><div class="line">        &#125;</div><div class="line"></div><div class="line">        super.onViewCreated(view, savedInstanceState);</div><div class="line">    &#125;</div><div class="line"></div><div class="line"></div><div class="line">    /**</div><div class="line">     * 是否需要改变status bar背景色，对于某些机型手机（如oppo）无法改变状态栏字体颜色，</div><div class="line">     * 会被当前状态栏挡住字体颜色，因此修改透明状态栏背景色</div><div class="line">     * @return true: 调用fixTransparentStatusBar()</div><div class="line">     */</div><div class="line">    protected boolean isFixTransparentStatusBar()&#123;</div><div class="line">        return false;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    /**</div><div class="line">     * @param view &#123;@link #onCreateView(LayoutInflater, ViewGroup, Bundle)&#125;中返回的view．</div><div class="line">     * */</div><div class="line">    protected void fixTransparentStatusBar(View view) &#123;</div><div class="line"></div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>通过<code>fixTransparentStatusBar()</code>,即可以调整<code>Fragment</code>的界面显示,无论是往状态栏区域添加一个填充<code>View</code>或根据<code>id</code>再调整宽高或<code>padding</code>都是可以的.  </p>
+<hr>
+<h2 id="白色Titlebar的处理"><a href="#白色Titlebar的处理" class="headerlink" title="白色Titlebar的处理"></a>白色<code>Titlebar</code>的处理</h2><p><code>Android 6.0</code>及以上可以使用亮色模式.<br>但在是低版本的手机中,<code>Titlebar</code>如果是白色的,或者说<code>App</code>的主题是白色的,则会出现状态栏的白色文字和图标被淹没在<code>Titlebar</code>中无法阅读.如下图:<br><img src="http://wx4.sinaimg.cn/mw1024/e3dc9ceagy1fbxa6zh7vtj20dz0870tt.jpg" alt="white.text.and.icon.invisible"><br>这时可以通过<code>layer-list</code>来设置分层背景,不必新增额外的<code>View</code>填充系统状态栏区域.<br>见如下代码或<code>TestBasic/res/drawable/title_layout_white3.xml</code>:   </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div></pre></td><td class="code"><pre><div class="line">&lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;</div><div class="line">&lt;layer-list xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;&gt;</div><div class="line">    &lt;item&gt;</div><div class="line">        &lt;shape android:shape=&quot;rectangle&quot;&gt;</div><div class="line">            &lt;solid android:color=&quot;@android:color/black&quot; /&gt;</div><div class="line">        &lt;/shape&gt;</div><div class="line">    &lt;/item&gt;</div><div class="line">    &lt;item android:bottom=&quot;1dp&quot;&gt;</div><div class="line">        &lt;shape android:shape=&quot;rectangle&quot;&gt;</div><div class="line">            &lt;solid</div><div class="line">                android:color=&quot;@android:color/white&quot; /&gt;</div><div class="line">        &lt;/shape&gt;</div><div class="line">    &lt;/item&gt;</div><div class="line"></div><div class="line">    &lt;!-- 48dp为标题栏高度　--&gt;</div><div class="line">    &lt;item android:bottom=&quot;48dp&quot;&gt;</div><div class="line">        &lt;shape xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot;</div><div class="line">            android:shape=&quot;rectangle&quot;&gt;</div><div class="line">            &lt;gradient</div><div class="line">                android:startColor=&quot;@android:color/white&quot;</div><div class="line">                android:centerColor=&quot;@color/middleColor&quot;</div><div class="line">                android:endColor=&quot;@android:color/darker_gray&quot;</div><div class="line">                android:angle=&quot;90&quot;</div><div class="line">                /&gt;</div><div class="line">        &lt;/shape&gt;</div><div class="line">    &lt;/item&gt;</div><div class="line">&lt;/layer-list&gt;</div></pre></td></tr></table></figure>
+<ul>
+<li>第一个<code>item</code>为黑色背景,效果为<code>Titlebar</code>底下的黑色分隔线.  </li>
+<li>第二个<code>item</code>为常规的<code>Titlebar</code>背景.  </li>
+<li>第三个<code>item</code>为状态栏的过滤渐变背景色.   </li>
+</ul>
+<p>最张效果见下图:<br><img src="http://wx3.sinaimg.cn/mw1024/e3dc9ceagy1fbxa6z085hj20em09kmy4.jpg" alt="white.Titlebar.perfect"></p>
+<hr>
+<h2 id="React-Native的处理"><a href="#React-Native的处理" class="headerlink" title="React-Native的处理"></a>React-Native的处理</h2><p><code>React-Native</code>是<code>js</code>代码，怎么办？<br>不不，<code>React</code>是表象，<code>Native</code>是实质。一样处理掉。<br><code>React-Native</code>最<code>root</code>的组件界面是<code>ReactRootView</code>，可以在显示的<code>Activity</code>里布局使用<code>LinearLayout</code>，<code>orientation</code>为<code>VERTICAL</code>,<br>将<code>TransparentStatusBar</code>及<code>ReactRootView</code>一并添加为子<code>View</code>,设置该<code>LinearLayout</code>为<code>Activity</code>的<code>contentView</code>即可。</p>
+<p>代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">public class ElnReactBaseActivity extends BaseActivity &#123;</div><div class="line">    private ReactInstanceManager mReactInstanceManager;</div><div class="line">  </div><div class="line">    private ReactRootView mReactRootView;</div><div class="line">    @Override</div><div class="line">    protected void onCreate(Bundle savedInstanceState) &#123;</div><div class="line">        super.onCreate(savedInstanceState);</div><div class="line">  </div><div class="line">        LinearLayout linearLayout = new LinearLayout(this);</div><div class="line">        linearLayout.setOrientation(LinearLayout.VERTICAL);</div><div class="line">        viewStatusbarBackground = LayoutInflater.from(this).inflate(R.layout.transparent_status_bar_bg_view, linearLayout, false);</div><div class="line">        linearLayout.addView(viewStatusbarBackground);</div><div class="line">  </div><div class="line">        mReactRootView = new ReactRootView(this);</div><div class="line">        LinearLayout.LayoutParams layParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);</div><div class="line">        linearLayout.addView(mReactRootView, layParams);</div><div class="line">  </div><div class="line">        mReactInstanceManager = ReactHelper.getInstance().getReactManager();</div><div class="line">        Bundle bundle = getExtra();</div><div class="line">        mReactRootView.startReactApplication(mReactInstanceManager, &quot;ELearning&quot;, bundle);</div><div class="line">    </div><div class="line">        setContentView(linearLayout);</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="小米-与-魅族-与-莫名其妙的-华为"><a href="#小米-与-魅族-与-莫名其妙的-华为" class="headerlink" title="小米 与 魅族 与 (莫名其妙的)华为"></a>小米 与 魅族 与 (莫名其妙的)华为</h2><p>小米 与 魅族都能通过自各的反射方法实现状态栏的亮色模式,解决白色<code>Titlebar</code>的问题.<br>这点两家做得很好.这里直接给出官方文档说明了.      </p>
+<p><a href="http://dev.xiaomi.com/docs/appsmarket/technical_docs/immersion/" target="_blank" rel="external">小米状态栏变色</a><br><a href="http://open-wiki.flyme.cn/index.php?title=%E7%8A%B6%E6%80%81%E6%A0%8F%E5%8F%98%E8%89%B2" target="_blank" rel="external">魅族状态栏变色</a></p>
+<p>上述的代码也整合进了GitHub中的工程<code>TitlebarBelowTransparentStatusBar</code>.   </p>
+<p>至于华为,额…大部分华为机子都是好机,但<strong>华为荣耀6 Plus(PE-TL10,EMUI3.1,Android 5.1.1)</strong>明明是Android 5.1,但使用5.1的代码无效,得使用4.4的实现方式.    </p>
+<hr>
+<h2 id="腾讯优测UTest"><a href="#腾讯优测UTest" class="headerlink" title="腾讯优测UTest"></a>腾讯优测UTest</h2><p>一个方便使用的App远程测试平台,机型多,Android版本齐全.<br>出了华为这档子事,就把App上传试了下其它各种手机,还好还好,没发现其它妖娥子.    </p>
+<p><img src="http://wx3.sinaimg.cn/mw1024/e3dc9ceagy1fbxa2fazwjj20gc0bf780.jpg" alt="uTest"></p>
+<hr>
+<p><a href="http://sodino.com/about/">About Sodino</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android/">Android</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/android/">Android</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://sodino.com/2017/01/20/android-transparent-statusbar/" data-title="【Android】透明状态栏在App中的实现与接口设计 | Sodino&#39;s Blog" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2017/02/22/retrofit-notes/" title="【Android】Retrofit 的一些笔记">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  【Android】Retrofit 的一些笔记</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/12/28/android-ripple/"  title="【Android】Ripple使用总结及ClickableSpan的冲突解决">
+ <strong>NEXT:</strong><br/> 
+ <span>【Android】Ripple使用总结及ClickableSpan的冲突解决
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#认识透明状态栏"><span class="toc-number">1.</span> <span class="toc-text">认识透明状态栏</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#透明状态栏Api及特性"><span class="toc-number">2.</span> <span class="toc-text">透明状态栏Api及特性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#设置透明状态栏"><span class="toc-number">3.</span> <span class="toc-text">设置透明状态栏</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#处理消失的系统状态栏区域"><span class="toc-number">4.</span> <span class="toc-text">处理消失的系统状态栏区域</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#fitsSystemWindows"><span class="toc-number">5.</span> <span class="toc-text">fitsSystemWindows</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Activity中的接口设计"><span class="toc-number">6.</span> <span class="toc-text">Activity中的接口设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Fragment中的接口设计"><span class="toc-number">7.</span> <span class="toc-text">Fragment中的接口设计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#白色Titlebar的处理"><span class="toc-number">8.</span> <span class="toc-text">白色Titlebar的处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#React-Native的处理"><span class="toc-number">9.</span> <span class="toc-text">React-Native的处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#小米-与-魅族-与-莫名其妙的-华为"><span class="toc-number">10.</span> <span class="toc-text">小米 与 魅族 与 (莫名其妙的)华为</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#腾讯优测UTest"><span class="toc-number">11.</span> <span class="toc-text">腾讯优测UTest</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	<div class="social-list" class="clearfix">
+		
+		<a href="http://weibo.com/3822886122" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/sodino" target="_blank" title="github"></a>
+		
+		
+		
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/android/" title="Android">Android<sup>13</sup></a></li>
+		
+			<li><a href="/categories/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/categories/C-C/" title="C/C++">C/C++<sup>26</sup></a></li>
+		
+			<li><a href="/categories/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/categories/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/categories/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/categories/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/categories/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Android/" title="Android">Android<sup>18</sup></a></li>
+		
+			<li><a href="/tags/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>25</sup></a></li>
+		
+			<li><a href="/tags/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/tags/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/tags/NDK/" title="NDK">NDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/tags/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/tags/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/tags/object-Object/" title="[object Object]">[object Object]<sup>1</sup></a></li>
+		
+			<li><a href="/tags/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+			<li><a href="/tags/markdown/" title="markdown">markdown<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://blog.csdn.net/sodino" target="_blank" title="Sodino Csdn">CSDN's Blog</a></li>
+    </ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Android/" style="font-size: 18.75px;">Android</a> <a href="/tags/AndroidStudio/" style="font-size: 13.75px;">AndroidStudio</a> <a href="/tags/C-C/" style="font-size: 20px;">C/C++</a> <a href="/tags/Eclipse/" style="font-size: 10px;">Eclipse</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/JDK/" style="font-size: 10px;">JDK</a> <a href="/tags/JNI/" style="font-size: 11.25px;">JNI</a> <a href="/tags/Java/" style="font-size: 10px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/LBS/" style="font-size: 10px;">LBS</a> <a href="/tags/Linux/" style="font-size: 16.25px;">Linux</a> <a href="/tags/Mac/" style="font-size: 11.25px;">Mac</a> <a href="/tags/NDK/" style="font-size: 10px;">NDK</a> <a href="/tags/Node-js/" style="font-size: 17.5px;">Node.js</a> <a href="/tags/Proguard/" style="font-size: 11.25px;">Proguard</a> <a href="/tags/React-Native/" style="font-size: 10px;">React-Native</a> <a href="/tags/object-Object/" style="font-size: 10px;">[object Object]</a> <a href="/tags/blog/" style="font-size: 12.5px;">blog</a> <a href="/tags/markdown/" style="font-size: 10px;">markdown</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://sodino.com" target="_blank" title="Sodino">Sodino</a>
+		
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"sodino"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+<script>
+    
+        var _bdImg = '4';
+    
+    window._bd_share_config={
+        "common":{
+            "bdSnsKey":{
+
+            },
+            "bdText":"",
+            "bdMini":"2",
+            "bdMiniList":[
+                "qzone",
+                "tsina",
+                "weixin",
+                "renren",
+                "tqq",
+                "tieba",
+                "douban",
+                "sqq",
+                "diandian",
+                "huaban",
+                "youdao",
+                "mail",
+                "ty",
+                "fbook",
+                "twi",
+                "linkedin",
+                "copy",
+                "print"
+            ],
+            "bdPic":"",
+            "bdStyle":"0",
+            "bdSize":"16"
+        },
+        "slide":{
+            "type":"slide",
+            "bdImg":_bdImg,
+            "bdPos":"right",
+            "bdTop":"350"
+        },
+        "image":{
+            "viewList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ],
+            "viewText":"分享：",
+            "viewSize":"16"
+        },
+        "selectShare":{
+            "bdContainerClass":null,
+            "bdSelectMiniList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ]
+        }
+    };
+    with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'null', 'null');  
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+</html>
+

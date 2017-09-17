@@ -1,0 +1,565 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="baidu_union_verify" content="d1952c66cf48912e21c18c7c581f382a">
+  <meta name="360-site-verification" content="67fbcc5a67f4c65c057315b28fa0b2c8" />
+<meta name="google-site-verification" content="2GzxQ0VtXwTSUdmGm6DzcmhTzM_I9QmzCb_pzpMzD88" />
+  
+    <title>【Node.js】mongoose教程03--Schema与Model | Sodino&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Sodino">
+    
+    <meta name="description" content="GitHub源码链接：sodino#MongoDemo
+
+理解Schema传统的MySQL、Oracle等关系型数据库中，在存储数据之前，开发者必须道德为数据定义数据表，并且为该数据表定义一些字段，从而使数据模型得到实现。可以说，在关系型数据库中，一个数据表就是一个数据架构。它预先定义了开发者可以使">
+    
+    
+    
+    
+    <link rel="alternate" href="atom.xml" title="Sodino&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='391982416296a0d54221f59fe35250d4';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+     
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Sodino&#39;s Blog">Sodino&#39;s Blog</a></h1>
+				<a class="blog-motto">见多食广 与食巨近</a>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于我</a></li>
+					
+					<li>
+					
+                                            <form class="search" action=http://zhannei.baidu.com/cse/search target="_blank">
+                                            <label>Search</label>
+                                        <input name="s" type="hidden" value= null ><input type="text" name="q" size="30" placeholder="搜索"><br>
+					
+					</li>
+				</ul>
+                            </nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/05/31/nodejs-mongoose-schema-model/" title="【Node.js】mongoose教程03--Schema与Model" itemprop="url">【Node.js】mongoose教程03--Schema与Model</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://sodino.com" title="Sodino">Sodino</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-05-31T14:52:00.000Z" itemprop="datePublished">2016 05 31</time>
+    更新日期:<time datetime="2016-06-05T08:16:52.000Z" itemprop="dateModified">2016 06 05</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#理解Schema"><span class="toc-number">1.</span> <span class="toc-text">理解Schema</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Schema的定义"><span class="toc-number">2.</span> <span class="toc-text">Schema的定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#创建Model"><span class="toc-number">3.</span> <span class="toc-text">创建Model</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#创建数据实例"><span class="toc-number">4.</span> <span class="toc-text">创建数据实例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Model实例方法"><span class="toc-number">5.</span> <span class="toc-text">Model实例方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Model静态方法"><span class="toc-number">6.</span> <span class="toc-text">Model静态方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#相关链接"><span class="toc-number">7.</span> <span class="toc-text">相关链接</span></a></li></ol>
+		</div>
+		
+		<p>GitHub源码链接：<a href="https://github.com/sodino/MongoDemo" target="_blank" rel="external">sodino#MongoDemo</a></p>
+<hr>
+<h2 id="理解Schema"><a href="#理解Schema" class="headerlink" title="理解Schema"></a>理解Schema</h2><p>传统的MySQL、Oracle等关系型数据库中，在存储数据之前，开发者必须道德为数据定义数据表，并且为该数据表定义一些字段，从而使数据模型得到实现。<br>可以说，在关系型数据库中，一个数据表就是一个数据架构。它预先定义了开发者可以使用的数据模型。</p>
+<p>但MongoDB是面向文档的数据库，不是关系型数据库。被认为是无数据架构的。</p>
+<p>然而数据架构仍然是有用的，可以使人以易读的方式来描述数据库中的数据内容，并为这些数据定义一些规则。<br>如Mongoose可以对<code>Number</code>的数据设置最小值<code>min</code>与最大值<code>max</code>；可以对<code>Date</code>设置默认值为当前时间；可以对<code>String</code>设置存储为小写模式并去除头尾空白字符。</p>
+<p>而以上所说的功能都在Mongoose的设计理念中，都由<code>Schema</code>的定义来实现。</p>
+<hr>
+<h2 id="Schema的定义"><a href="#Schema的定义" class="headerlink" title="Schema的定义"></a>Schema的定义</h2><p>在Sodino的MongoDemo工程中，需要对手机进行数据架构的定义。具体实现如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">// 准备工作</div><div class="line">var mongoose = require(&apos;mongoose&apos;);</div><div class="line">var Schema = mongoose.Schema;</div><div class="line"></div><div class="line">// 开始定义Schema</div><div class="line">var phoneSchema = new Schema(&#123;</div><div class="line">	device 		: String,    //设备名称</div><div class="line">	isSmart 	: Boolean,   //是否为智能手机</div><div class="line">	releaseTime	: Date,      //发布时间 </div><div class="line">	price		: Number,    //售价</div><div class="line">	apps		: [&#123;name : String&#125;], //手机中安装的App名称,是数组</div><div class="line">	manufacturer: &#123;         //手机厂商</div><div class="line">		name 	: String,   //厂商名称</div><div class="line">		country	: String    //厂商国籍</div><div class="line">	&#125;</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<p>至此，对手机的<code>Schema</code>定义完成。<br>当然，也可能通过Api对Schema进行动态扩展，如需要增加手机的颜色这一数据属性，则可以用如下代码实现：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">phoneSchma.add(&#123;color : &apos;string&apos;&#125;)</div></pre></td></tr></table></figure>
+<p><code>Schema</code>中所支持的数据类型有：  </p>
+<ul>
+<li>String  </li>
+<li>Number  </li>
+<li>Date  </li>
+<li>Buffer  </li>
+<li>Boolean  </li>
+<li>Mixed  </li>
+<li>Objectid  </li>
+<li>Array  </li>
+</ul>
+<hr>
+<h2 id="创建Model"><a href="#创建Model" class="headerlink" title="创建Model"></a>创建Model</h2><p>下一步在代码中使用<code>Schema</code>所定义的数据模型，需要将定义好的<code>phoneSchema</code>转换为<code>Model</code>。<br>可以使用<code>mongoose.model(modelName, schema)</code>进行转换。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">var Phone = mongoose.model(&apos;Phone&apos;, phoneSchema);</div></pre></td></tr></table></figure>
+<p>有<code>Schema</code>后为什么还要有<code>Model</code>呢？<br>在Mongoose的设计理念中，<code>Schema</code>用来也只用来定义数据结构，具体对数据的增删改查操作都由<code>Model</code>来执行。<br>就好比富士康用模具组装出一台手机后，当需要打电话时是用手机来打而不是用模具。</p>
+<hr>
+<h2 id="创建数据实例"><a href="#创建数据实例" class="headerlink" title="创建数据实例"></a>创建数据实例</h2><p><code>Model</code>相当于数据的构造函数。当需要实例化出一个数据对象实例时，可以使用<code>new</code>操作符来实现。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line">var iPhoneSE = new Phone(</div><div class="line">	&#123;</div><div class="line">	  device    : &quot;iPhone SE&quot;,</div><div class="line">	  isSmart   : &quot;true&quot;,</div><div class="line">	  releaseTime : &quot;2016-03-21 10:00:00&quot;,</div><div class="line">	  price   : 4999,</div><div class="line">	  apps    : [&#123;name : &quot;Safari&quot;&#125;, &#123;name : &quot;Map&quot;&#125;, &#123;name : &quot;Tinder&quot;&#125;],</div><div class="line">	  manufacturer: &#123;</div><div class="line">	    name  : &quot;Apple&quot;,</div><div class="line">	    country&quot; : &quot;The United States&quot;</div><div class="line">	  &#125;</div><div class="line">	&#125;</div><div class="line">);</div></pre></td></tr></table></figure>
+<p>在上面的代码中，数据的具体值以JSON对象的形式作为参数传入<code>Phone</code>即构造出数据对象实例<code>iPhoneSE</code>。</p>
+<p>在<a href="https://github.com/sodino/MongoDemo" target="_blank" rel="external">sodino#MongoDemo</a>示例代码中，Sodino使用了<code>require(json.file.path)</code>来获取JSON对象再传参到<code>Phone</code>的方式。简化了JavaScript的代码量。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div></pre></td><td class="code"><pre><div class="line">// raw.iPhoneSe.json与当前的js代码文件放于同一目录下</div><div class="line">var raw;</div><div class="line">raw = require(&apos;./raw.iPhoneSE.json&apos;);</div><div class="line">var iPhoneSE = new Phone(raw);</div></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">// raw.iPhoneSe.json内容如下：</div><div class="line">&#123;</div><div class="line">  &quot;device&quot;    : &quot;iPhone SE&quot;,</div><div class="line">  &quot;isSmart&quot;   : &quot;true&quot;,</div><div class="line">  &quot;releaseTime&quot; : &quot;2016-03-21 10:00:00&quot;,</div><div class="line">  &quot;price&quot;   : 4999,</div><div class="line">  &quot;apps&quot;    : [&#123;&quot;name&quot; : &quot;Safari&quot;&#125;, &#123;&quot;name&quot; : &quot;Map&quot;&#125;, &#123;&quot;name&quot; : &quot;Tinder&quot;&#125;],</div><div class="line">  &quot;manufacturer&quot;: &#123;</div><div class="line">    &quot;name&quot;  : &quot;Apple&quot;,</div><div class="line">    &quot;country&quot; : &quot;The United States&quot;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="Model实例方法"><a href="#Model实例方法" class="headerlink" title="Model实例方法"></a>Model实例方法</h2><p>可以为<code>Model</code>的实例添加自定义方法，作法也很简单，只要将自定义的方法添加到<code>Schema.methods</code>即可。</p>
+<p>可以设想这样的功能，<code>Phone</code>的内容很多，但客户最关心哪个手机价格是多少，那么可以添加一个实例方法<code>printBrief()</code>用来打印出这两个信息就好了。</p>
+<p>如下代码所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">var mongoose = require(&apos;mongoose&apos;);</div><div class="line">var Schema = mongoose.Schema;</div><div class="line"></div><div class="line">var phoneSchema = new Schema(&#123;</div><div class="line">	... ...</div><div class="line">	... ...</div><div class="line">&#125;);</div><div class="line"></div><div class="line">var Phone = mongoose.model(&apos;Phone&apos;, phoneSchema);</div><div class="line"></div><div class="line">// 这里，为Model添加实例方法。</div><div class="line">phoneSchema.methods.printBrief = function () &#123;</div><div class="line">	console.log(this.device, &apos;￥&apos;+this.price);</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p><code>printBrief()</code>的使用方法如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">var iPhoneSE = new Phone(raw);</div><div class="line"></div><div class="line">iPhoneSE.printBrief();</div></pre></td></tr></table></figure>
+<p>控制台输出为：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">iPhone SE  ￥ 4999</div></pre></td></tr></table></figure></p>
+<p>需要注意的是，Model实例方法只能被Model的实例调用，不能被Model直接调用，否则会抛出<code>is not a function</code>异常。这相当于Java的非静态方法不能被Class直接调用。异常如下所示：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">TypeError: Phone.printBrief is not a function    at Query.&lt;anonymous&gt; (D:\desk\JavaScript\MongoDemo\app.js:427:14)    at D:\desk\JavaScript\MongoDemo\node_modules\kareem\index.js:177:19    at D:\desk\JavaScript\MongoDemo\node_modules\kareem\index.js:109:16    at _combinedTickCallback (node.js:370:9)    at process._tickCallback (node.js:401:11)</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="Model静态方法"><a href="#Model静态方法" class="headerlink" title="Model静态方法"></a>Model静态方法</h2><p>与实例方法相对应的是静态方法。只要在<code>Schema.statics</code>中添加新声明的方法即可。</p>
+<p>可以设想这样的功能，想查询一下<code>Phone</code>到底存储了多少个手机型号，可以定义一个静态方法<code>printCount()</code>,代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">var mongoose = require(&apos;mongoose&apos;);</div><div class="line">var Schema = mongoose.Schema;</div><div class="line"></div><div class="line">var phoneSchema = new Schema(&#123;</div><div class="line">	... ...</div><div class="line">	... ...</div><div class="line">&#125;);</div><div class="line"></div><div class="line">var Phone = mongoose.model(&apos;Phone&apos;, phoneSchema);</div><div class="line"></div><div class="line">// 这里，为Model添加静态方法。</div><div class="line">phoneSchema.statics.printCount = function () &#123;</div><div class="line">	console.log(this.device, &apos;￥&apos;+this.price);</div><div class="line">	this.count(&#123;&#125;, (err, count) =&gt; &#123;</div><div class="line">		console.log(&apos;---printCount()-----------------------------&apos;)</div><div class="line">		if (err) &#123;</div><div class="line">			console.log(err);</div><div class="line">		&#125; else &#123;</div><div class="line">			console.log(&apos;phone count=&apos; + count);</div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+<p>调用方法如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">Phone.printCount();</div></pre></td></tr></table></figure></p>
+<p>控制台打印如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">---printCount()-----------------------------phone count=5</div></pre></td></tr></table></figure>
+<p>说了这么多，接下来的文章开始介绍数据库的增删改查了哈…</p>
+<p>下一篇:<a href="/2016/06/01/nodejs-mongoose-save/">mongoose教程–存储</a></p>
+<hr>
+<h2 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h2><p><a href="http://mongoosejs.com/docs/index.html" target="_blank" rel="external">Mongoose Quick Start v4.4.19</a><br><a href="http://mongoosejs.com/docs/guide.html" target="_blank" rel="external">Mongoose Schemas v4.4.19</a></p>
+<hr>
+<p><a href="http://sodino.com/about/">About Sodino</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Node-js/">Node.js</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Node-js/">Node.js</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://sodino.com/2016/05/31/nodejs-mongoose-schema-model/" data-title="【Node.js】mongoose教程03--Schema与Model | Sodino&#39;s Blog" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/06/01/nodejs-mongoose-save/" title="【Node.js】mongoose教程04--存储">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  【Node.js】mongoose教程04--存储</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/05/31/nodejs-mongoose-db-events/"  title="【Node.js】mongoose教程02--开启、关闭数据库，监听数据库事件">
+ <strong>NEXT:</strong><br/> 
+ <span>【Node.js】mongoose教程02--开启、关闭数据库，监听数据库事件
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#理解Schema"><span class="toc-number">1.</span> <span class="toc-text">理解Schema</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Schema的定义"><span class="toc-number">2.</span> <span class="toc-text">Schema的定义</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#创建Model"><span class="toc-number">3.</span> <span class="toc-text">创建Model</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#创建数据实例"><span class="toc-number">4.</span> <span class="toc-text">创建数据实例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Model实例方法"><span class="toc-number">5.</span> <span class="toc-text">Model实例方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Model静态方法"><span class="toc-number">6.</span> <span class="toc-text">Model静态方法</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#相关链接"><span class="toc-number">7.</span> <span class="toc-text">相关链接</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	<div class="social-list" class="clearfix">
+		
+		<a href="http://weibo.com/3822886122" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/sodino" target="_blank" title="github"></a>
+		
+		
+		
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/android/" title="Android">Android<sup>13</sup></a></li>
+		
+			<li><a href="/categories/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/categories/C-C/" title="C/C++">C/C++<sup>26</sup></a></li>
+		
+			<li><a href="/categories/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/categories/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/categories/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/categories/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/categories/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Android/" title="Android">Android<sup>18</sup></a></li>
+		
+			<li><a href="/tags/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>25</sup></a></li>
+		
+			<li><a href="/tags/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/tags/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/tags/NDK/" title="NDK">NDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/tags/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/tags/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/tags/object-Object/" title="[object Object]">[object Object]<sup>1</sup></a></li>
+		
+			<li><a href="/tags/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+			<li><a href="/tags/markdown/" title="markdown">markdown<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://blog.csdn.net/sodino" target="_blank" title="Sodino Csdn">CSDN's Blog</a></li>
+    </ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Android/" style="font-size: 18.75px;">Android</a> <a href="/tags/AndroidStudio/" style="font-size: 13.75px;">AndroidStudio</a> <a href="/tags/C-C/" style="font-size: 20px;">C/C++</a> <a href="/tags/Eclipse/" style="font-size: 10px;">Eclipse</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/JDK/" style="font-size: 10px;">JDK</a> <a href="/tags/JNI/" style="font-size: 11.25px;">JNI</a> <a href="/tags/Java/" style="font-size: 10px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/LBS/" style="font-size: 10px;">LBS</a> <a href="/tags/Linux/" style="font-size: 16.25px;">Linux</a> <a href="/tags/Mac/" style="font-size: 11.25px;">Mac</a> <a href="/tags/NDK/" style="font-size: 10px;">NDK</a> <a href="/tags/Node-js/" style="font-size: 17.5px;">Node.js</a> <a href="/tags/Proguard/" style="font-size: 11.25px;">Proguard</a> <a href="/tags/React-Native/" style="font-size: 10px;">React-Native</a> <a href="/tags/object-Object/" style="font-size: 10px;">[object Object]</a> <a href="/tags/blog/" style="font-size: 12.5px;">blog</a> <a href="/tags/markdown/" style="font-size: 10px;">markdown</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://sodino.com" target="_blank" title="Sodino">Sodino</a>
+		
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"sodino"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+<script>
+    
+        var _bdImg = '4';
+    
+    window._bd_share_config={
+        "common":{
+            "bdSnsKey":{
+
+            },
+            "bdText":"",
+            "bdMini":"2",
+            "bdMiniList":[
+                "qzone",
+                "tsina",
+                "weixin",
+                "renren",
+                "tqq",
+                "tieba",
+                "douban",
+                "sqq",
+                "diandian",
+                "huaban",
+                "youdao",
+                "mail",
+                "ty",
+                "fbook",
+                "twi",
+                "linkedin",
+                "copy",
+                "print"
+            ],
+            "bdPic":"",
+            "bdStyle":"0",
+            "bdSize":"16"
+        },
+        "slide":{
+            "type":"slide",
+            "bdImg":_bdImg,
+            "bdPos":"right",
+            "bdTop":"350"
+        },
+        "image":{
+            "viewList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ],
+            "viewText":"分享：",
+            "viewSize":"16"
+        },
+        "selectShare":{
+            "bdContainerClass":null,
+            "bdSelectMiniList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ]
+        }
+    };
+    with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'null', 'null');  
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+</html>
+

@@ -1,0 +1,559 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="baidu_union_verify" content="d1952c66cf48912e21c18c7c581f382a">
+  <meta name="360-site-verification" content="67fbcc5a67f4c65c057315b28fa0b2c8" />
+<meta name="google-site-verification" content="2GzxQ0VtXwTSUdmGm6DzcmhTzM_I9QmzCb_pzpMzD88" />
+  
+    <title>【C/C++】不定参数函数 | Sodino&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Sodino">
+    
+    <meta name="description" content="文章结构：
+
+不定参数函数形式
+宏定义讲解
+示例代码:实现print()函数
+
+
+不定参数函数形式在标准库中，某些函数的参数数量是不固定，是可变的，例如print()等。
+不定参数的形式一般为：
+type function_name(type arg1, [type arg_n], ...) ｛
+ ">
+    
+    
+    
+    
+    <link rel="alternate" href="atom.xml" title="Sodino&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='391982416296a0d54221f59fe35250d4';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+     
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Sodino&#39;s Blog">Sodino&#39;s Blog</a></h1>
+				<a class="blog-motto">见多食广 与食巨近</a>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于我</a></li>
+					
+					<li>
+					
+                                            <form class="search" action=http://zhannei.baidu.com/cse/search target="_blank">
+                                            <label>Search</label>
+                                        <input name="s" type="hidden" value= null ><input type="text" name="q" size="30" placeholder="搜索"><br>
+					
+					</li>
+				</ul>
+                            </nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/03/28/c-varying-args-function/" title="【C/C++】不定参数函数" itemprop="url">【C/C++】不定参数函数</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://sodino.com" title="Sodino">Sodino</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2015-03-28T05:05:27.000Z" itemprop="datePublished">2015 03 28</time>
+    更新日期:<time datetime="2015-03-29T03:40:42.000Z" itemprop="dateModified">2015 03 29</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#不定参数函数形式"><span class="toc-number">1.</span> <span class="toc-text">不定参数函数形式</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#宏定义讲解"><span class="toc-number">2.</span> <span class="toc-text">宏定义讲解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#示例代码-实现print-函数"><span class="toc-number">3.</span> <span class="toc-text">示例代码:实现print()函数</span></a></li></ol>
+		</div>
+		
+		<p>文章结构：</p>
+<ul>
+<li><a href="#desc">不定参数函数形式</a></li>
+<li><a href="#macro">宏定义讲解</a></li>
+<li><a href="#demo">示例代码:实现print()函数</a></li>
+</ul>
+<hr>
+<h1 id="不定参数函数形式"><a href="#不定参数函数形式" class="headerlink" title="不定参数函数形式"></a><a name="desc">不定参数函数形式</a></h1><p>在标准库中，某些函数的参数数量是不固定，是可变的，例如<code>print()</code>等。</p>
+<p>不定参数的形式一般为：</p>
+<pre><code>type function_name(type arg1, [type arg_n], ...) ｛
+    va_list list_args;
+    ... ...
+
+｝
+</code></pre><p>在函数的参数中，第一个参数是一定要声明确切的类型及参数名的，之后的参数可以声明类型及参数名，也可以直接用<code>...</code>来代替表示不定参数。</p>
+<p>函数体在执行过程中需要知道<code>...</code>所表示的不定参数的具体类型，所以如系统的<code>print()</code>函数第一个参数是<code>char*</code>并用<code>%[flag]</code>中的<code>flag</code>来告诉函数第n个参数的具体类型。即,要嘛所有参数固定为已知类型，如求平均值时都固定为<code>float</code>；要嘛在类型不固定的情况下需要由<code>arg1</code>或<code>arg_n</code>来告诉函数后续<code>...</code>的具体参数类型。</p>
+<p>在不定参数函数体的开头，都要声明一个<code>va_list</code>的对象以便后续被下面的宏定义所使用。</p>
+<hr>
+<h1 id="宏定义讲解"><a href="#宏定义讲解" class="headerlink" title="宏定义讲解"></a><a name="macro">宏定义讲解</a></h1><p>不定参数函数的实现需要包含<code>stdarg.h</code>头文件的支持。<br>该头文件中定义了一个宏，而非函数(虽然看起来像函数)来支持不定参数函数的实现。</p>
+<p><code>#include &lt;stdarg.h&gt;</code></p>
+<blockquote>
+<p>void va_start(va_list list_args, last);</p>
+</blockquote>
+<p><code>va_start()</code>是要获取参数之前要对<code>va_list</code>进行初始化操作，所以<code>va_start()</code>必须在<code>va_arg()</code>和<code>va_end()</code>之前执行。<br><code>last</code>参数是指在函数声明中确定类型及名称的最后一个参数。这个<code>last</code>参数不应代表寄存器变量、函数指针或数组。</p>
+<blockquote>
+<p>type va_arg(va_list ap, type);</p>
+</blockquote>
+<p><code>va_arg()</code>函数第一次执行时返回<code>va_start()</code>中<code>last</code>的下一个参数，之后的每次执行都会继续返回<code>va_list</code>的下一个；第二个参数<code>type</code>指定当前要返回的参数的具体类型。<br>如果<code>va_list</code>已经到结尾了，或者<code>type</code>与参数的实际类型是不符合的，则会发生未知的错误。</p>
+<blockquote>
+<p>void va_end(va_list ap);</p>
+</blockquote>
+<p>当<code>va_end()</code>必须与<code>va_start()</code>在同一个函数体中成对出现，在执行完<code>va_end()</code>之后<code>va_list ap</code>就被失去了定义了，变为不可用状态。<br>如果想多次遍历<code>va_list ap</code>，则可以通过再次调用<code>va_start()</code>后继续遍历，在遍历结束后要相应的调用<code>va_end()</code>结束遍历。</p>
+<blockquote>
+<p>void va_copy(va_list dest, va_list src);</p>
+</blockquote>
+<p>对<code>va_list</code>进行复制。<code>src</code>是执行<code>va_start()</code>之后已经初始化了的。且在<code>src</code>执行完<code>va_end()</code>之前，不能将<code>dest</code>用于另一个遍历的过程。</p>
+<hr>
+<h1 id="示例代码-实现print-函数"><a href="#示例代码-实现print-函数" class="headerlink" title="示例代码:实现print()函数"></a><a name="demo">示例代码:实现print()函数</a></h1><p>以下代码模拟实现了系统函数<code>printf()</code>的功能：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdarg.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="comment">//  Created by sodino on 15-3-13.</span></div><div class="line"><span class="comment">//  Copyright (c) 2015年 sodino. All rights reserved.</span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">void</span> <span class="title">my_print</span><span class="params">(<span class="keyword">char</span> *fmt, ...)</span> </span>&#123;</div><div class="line">    <span class="keyword">char</span> *tmp;</div><div class="line">    va_list list_args;</div><div class="line">    <span class="keyword">int</span> d;</div><div class="line">    <span class="keyword">char</span> c, *s;</div><div class="line">    <span class="keyword">int</span> isFlag = <span class="number">0</span>;</div><div class="line">    va_start(list_args, fmt);</div><div class="line">    <span class="keyword">while</span> (*fmt) &#123;</div><div class="line">        tmp = fmt;</div><div class="line">        <span class="keyword">switch</span> (*fmt++) &#123;</div><div class="line">            <span class="keyword">case</span> <span class="string">'%'</span>:</div><div class="line">                <span class="keyword">if</span> (isFlag) &#123;</div><div class="line">                    <span class="built_in">printf</span>(<span class="string">"%%"</span>);<span class="comment">// 打印出 '%'</span></div><div class="line">                    isFlag = <span class="number">0</span>;</div><div class="line">                &#125; <span class="keyword">else</span> &#123;</div><div class="line">                    isFlag = <span class="number">1</span>;</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            <span class="keyword">case</span> <span class="string">'s'</span>:              <span class="comment">/* string */</span></div><div class="line">                <span class="keyword">if</span> (isFlag) &#123;</div><div class="line">                    s = va_arg(list_args, <span class="keyword">char</span> *);</div><div class="line">                    <span class="built_in">printf</span>(<span class="string">"%s"</span>, s);</div><div class="line">                    isFlag = <span class="number">0</span>;</div><div class="line">                &#125; <span class="keyword">else</span> &#123;</div><div class="line">                    <span class="built_in">printf</span>(<span class="string">"s"</span>);</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            <span class="keyword">case</span> <span class="string">'d'</span>:              <span class="comment">/* int */</span></div><div class="line">                <span class="keyword">if</span> (isFlag) &#123;</div><div class="line">                    d = va_arg(list_args, <span class="keyword">int</span>);</div><div class="line">                    <span class="built_in">printf</span>(<span class="string">"%d"</span>, d);</div><div class="line">                    isFlag = <span class="number">0</span>;</div><div class="line">                &#125; <span class="keyword">else</span> &#123;</div><div class="line">                    <span class="built_in">printf</span>(<span class="string">"d"</span>);</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            <span class="keyword">case</span> <span class="string">'c'</span>:              <span class="comment">/* char */</span></div><div class="line">                <span class="keyword">if</span> (isFlag) &#123;</div><div class="line">                    <span class="comment">// 需先转为int再强制转换为char,</span></div><div class="line">                    c = (<span class="keyword">char</span>) va_arg(list_args, <span class="keyword">int</span>);</div><div class="line">                    <span class="built_in">printf</span>(<span class="string">"%c"</span>, c);</div><div class="line">                    isFlag = <span class="number">0</span>;</div><div class="line">                &#125; <span class="keyword">else</span> &#123;</div><div class="line">                    <span class="built_in">printf</span>(<span class="string">"c"</span>);</div><div class="line">                &#125;</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            <span class="keyword">case</span> <span class="string">'p'</span>:</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            <span class="keyword">default</span>:</div><div class="line">                <span class="built_in">printf</span>(<span class="string">"%c"</span>, *tmp);</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    va_end(list_args);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">int</span> main<span class="comment">/*05*/</span> (<span class="keyword">int</span> argc, <span class="keyword">char</span> ** argv) &#123;</div><div class="line">    my_print(<span class="string">"%s%s %d %d %c %c varying arguments\n"</span>,<span class="string">"sodino"</span>,<span class="string">"@qq.com,"</span>,<span class="number">123</span>,<span class="number">456</span>,<span class="number">80</span>,<span class="number">81</span>, &amp;argc);</div><div class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>最后输出如下：</p>
+<pre><code>sodino@qq.com, 123 456 P Q varying arguments
+Program ended with exit code: 0
+</code></pre>  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/C-C/">C/C++</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/C-C/">C/C++</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://sodino.com/2015/03/28/c-varying-args-function/" data-title="【C/C++】不定参数函数 | Sodino&#39;s Blog" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/04/08/c-exec-family/" title="【C/C++】exec函数族的使用">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  【C/C++】exec函数族的使用</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/03/26/c-union/"  title="【C/C++】共用体Union">
+ <strong>NEXT:</strong><br/> 
+ <span>【C/C++】共用体Union
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#不定参数函数形式"><span class="toc-number">1.</span> <span class="toc-text">不定参数函数形式</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#宏定义讲解"><span class="toc-number">2.</span> <span class="toc-text">宏定义讲解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#示例代码-实现print-函数"><span class="toc-number">3.</span> <span class="toc-text">示例代码:实现print()函数</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	<div class="social-list" class="clearfix">
+		
+		<a href="http://weibo.com/3822886122" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/sodino" target="_blank" title="github"></a>
+		
+		
+		
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/android/" title="Android">Android<sup>13</sup></a></li>
+		
+			<li><a href="/categories/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/categories/C-C/" title="C/C++">C/C++<sup>26</sup></a></li>
+		
+			<li><a href="/categories/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/categories/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/categories/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/categories/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/categories/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Android/" title="Android">Android<sup>18</sup></a></li>
+		
+			<li><a href="/tags/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>25</sup></a></li>
+		
+			<li><a href="/tags/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/tags/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/tags/NDK/" title="NDK">NDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/tags/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/tags/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/tags/object-Object/" title="[object Object]">[object Object]<sup>1</sup></a></li>
+		
+			<li><a href="/tags/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+			<li><a href="/tags/markdown/" title="markdown">markdown<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://blog.csdn.net/sodino" target="_blank" title="Sodino Csdn">CSDN's Blog</a></li>
+    </ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Android/" style="font-size: 18.75px;">Android</a> <a href="/tags/AndroidStudio/" style="font-size: 13.75px;">AndroidStudio</a> <a href="/tags/C-C/" style="font-size: 20px;">C/C++</a> <a href="/tags/Eclipse/" style="font-size: 10px;">Eclipse</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/JDK/" style="font-size: 10px;">JDK</a> <a href="/tags/JNI/" style="font-size: 11.25px;">JNI</a> <a href="/tags/Java/" style="font-size: 10px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/LBS/" style="font-size: 10px;">LBS</a> <a href="/tags/Linux/" style="font-size: 16.25px;">Linux</a> <a href="/tags/Mac/" style="font-size: 11.25px;">Mac</a> <a href="/tags/NDK/" style="font-size: 10px;">NDK</a> <a href="/tags/Node-js/" style="font-size: 17.5px;">Node.js</a> <a href="/tags/Proguard/" style="font-size: 11.25px;">Proguard</a> <a href="/tags/React-Native/" style="font-size: 10px;">React-Native</a> <a href="/tags/object-Object/" style="font-size: 10px;">[object Object]</a> <a href="/tags/blog/" style="font-size: 12.5px;">blog</a> <a href="/tags/markdown/" style="font-size: 10px;">markdown</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://sodino.com" target="_blank" title="Sodino">Sodino</a>
+		
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"sodino"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+<script>
+    
+        var _bdImg = '4';
+    
+    window._bd_share_config={
+        "common":{
+            "bdSnsKey":{
+
+            },
+            "bdText":"",
+            "bdMini":"2",
+            "bdMiniList":[
+                "qzone",
+                "tsina",
+                "weixin",
+                "renren",
+                "tqq",
+                "tieba",
+                "douban",
+                "sqq",
+                "diandian",
+                "huaban",
+                "youdao",
+                "mail",
+                "ty",
+                "fbook",
+                "twi",
+                "linkedin",
+                "copy",
+                "print"
+            ],
+            "bdPic":"",
+            "bdStyle":"0",
+            "bdSize":"16"
+        },
+        "slide":{
+            "type":"slide",
+            "bdImg":_bdImg,
+            "bdPos":"right",
+            "bdTop":"350"
+        },
+        "image":{
+            "viewList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ],
+            "viewText":"分享：",
+            "viewSize":"16"
+        },
+        "selectShare":{
+            "bdContainerClass":null,
+            "bdSelectMiniList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ]
+        }
+    };
+    with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'null', 'null');  
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+</html>
+

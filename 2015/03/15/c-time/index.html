@@ -1,0 +1,624 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="baidu_union_verify" content="d1952c66cf48912e21c18c7c581f382a">
+  <meta name="360-site-verification" content="67fbcc5a67f4c65c057315b28fa0b2c8" />
+<meta name="google-site-verification" content="2GzxQ0VtXwTSUdmGm6DzcmhTzM_I9QmzCb_pzpMzD88" />
+  
+    <title>【C/C++】日常时间的获取、格式化等操作汇总 | Sodino&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Sodino">
+    
+    <meta name="description" content="文章结构如下：
+
+C支持的日常时间种类
+日常时间函数的调用关系
+日常时间函数的讲解
+示例代码
+
+
+C支持的日常时间种类C支持的日常时间格式或种类有这三种：
+#####1.时间值`time_t
+时间值是指从1970-01-01 00:00:00 +0000 (UTC) 这个时间点开始到当前时间的秒数。">
+    
+    
+    
+    
+    <link rel="alternate" href="atom.xml" title="Sodino&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='391982416296a0d54221f59fe35250d4';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+     
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Sodino&#39;s Blog">Sodino&#39;s Blog</a></h1>
+				<a class="blog-motto">见多食广 与食巨近</a>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于我</a></li>
+					
+					<li>
+					
+                                            <form class="search" action=http://zhannei.baidu.com/cse/search target="_blank">
+                                            <label>Search</label>
+                                        <input name="s" type="hidden" value= null ><input type="text" name="q" size="30" placeholder="搜索"><br>
+					
+					</li>
+				</ul>
+                            </nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/03/15/c-time/" title="【C/C++】日常时间的获取、格式化等操作汇总" itemprop="url">【C/C++】日常时间的获取、格式化等操作汇总</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://sodino.com" title="Sodino">Sodino</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2015-03-15T08:05:50.000Z" itemprop="datePublished">2015 03 15</time>
+    更新日期:<time datetime="2015-03-22T10:25:24.000Z" itemprop="dateModified">2015 03 22</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#C支持的日常时间种类"><span class="toc-number">1.</span> <span class="toc-text">C支持的日常时间种类</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#日常时间函数的调用关系"><span class="toc-number">2.</span> <span class="toc-text">日常时间函数的调用关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#日常时间函数的讲解"><span class="toc-number">3.</span> <span class="toc-text">日常时间函数的讲解</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#获取当前时间值"><span class="toc-number">3.0.0.0.1.</span> <span class="toc-text">获取当前时间值</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#获取时间详情"><span class="toc-number">3.0.0.0.2.</span> <span class="toc-text">获取时间详情</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#格式化的时间字符串"><span class="toc-number">3.0.0.0.3.</span> <span class="toc-text">格式化的时间字符串</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#"><span class="toc-number">3.1.</span> <span class="toc-text"> </span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#示例代码"><span class="toc-number">4.</span> <span class="toc-text">示例代码</span></a></li></ol>
+		</div>
+		
+		<p>文章结构如下：</p>
+<ul>
+<li><a href="#time_support">C支持的日常时间种类</a></li>
+<li><a href="#time_relation">日常时间函数的调用关系</a></li>
+<li><a href="#time_function">日常时间函数的讲解</a></li>
+<li><a href="#time_demo">示例代码</a></li>
+</ul>
+<hr>
+<h1 id="C支持的日常时间种类"><a href="#C支持的日常时间种类" class="headerlink" title="C支持的日常时间种类"></a><a name="time_support">C支持的日常时间种类</a></h1><p>C支持的日常时间格式或种类有这三种：</p>
+<p>#####1.时间值`time_t</p>
+<p>时间值是指从1970-01-01 00:00:00 +0000 (UTC) 这个时间点开始到当前时间的秒数。<br>    在C语言中，用<code>time_t</code>来表示一个秒数，查看头文件可以发现<code>time_t</code>是对<code>long</code>的一个重定义而已。<br>    相关函数<code>time()</code>。</p>
+<p>#####2.时间详情 `struct tm</p>
+<p>有了具体的时间值<code>time_t</code>，但存在着阅读和理解不方便的问题，所以希望可以把时间值转化为相应的年、月、日、时、分、秒等数据。<br>    对应的结构体为<code>struct tm</code>。如下代码：</p>
+<pre><code><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">struct tm &#123;</div><div class="line">   int tm_sec;    /* 秒,取值范围(0~59)，但当遇到闰秒时则会有60秒的取值。 */</div><div class="line">   int tm_min;    /* 分钟数，取值范围(0-59) */</div><div class="line">   int tm_hour;   /* 小时数，取值范围(0-23) */</div><div class="line">   int tm_mday;   /* 当天在这个月中是第几天，取值范围(1-31) */</div><div class="line">   int tm_mon;    /* 当前月份是第几个月，取值范围(0-11) */</div><div class="line">   int tm_year;   /* 从1900年开始至今的年数，即(Year - 1900)的值 */</div><div class="line">   int tm_wday;   /* 当天在本周是第几天，取值范围(0-6, Sunday = 0) */</div><div class="line">   int tm_yday;   /* 当天在今年是第几天，取值范围(0-365, 1 Jan = 0) */</div><div class="line">   int tm_isdst;  /* 夏令时标记，值大于0表示夏令时生效；等于0表示夏令时失效；小于0表示数据不可用。 */</div><div class="line">   char	*tm_zone; /* 时区名称，根据系统不同可能不被声明或不同全名。 */</div><div class="line">&#125;;</div></pre></td></tr></table></figure>
+</code></pre><p>  相关函数 <code>localtime()</code> <code>gmtime()</code> 。</p>
+<p>#####3.时间字符串 (char *)</p>
+<p>有了年、月、日等具体的数据，C也提供函数将数据转为转为可视的、有意义的字符串。<br>    相关函数</p>
+<ul>
+<li>固定格式时间文本：<code>ctime()</code> <code>asctime()</code>    </li>
+<li>自定义格式时间文本： <code>strftime()</code>。    </li>
+</ul>
+<hr>
+<h1 id="日常时间函数的调用关系"><a href="#日常时间函数的调用关系" class="headerlink" title="日常时间函数的调用关系"></a><a name="time_relation">日常时间函数的调用关系</a></h1><p>由于涉及到日常时间的函数比较多，这里整理了一张它们的关系图如下：<br><img src="http://ww3.sinaimg.cn/mw1024/e3dc9ceagw1eq7anyzdloj20ib0f43z8.jpg" alt="c.time"><br>好了，先看一眼就好。下面来逐一讲解图中的函数。</p>
+<hr>
+<h1 id="日常时间函数的讲解"><a href="#日常时间函数的讲解" class="headerlink" title="日常时间函数的讲解"></a><a name="time_function">日常时间函数的讲解</a></h1><p>首先，日常时间函数都需要<code>#include &lt;time.h&gt;</code>。</p>
+<h5 id="获取当前时间值"><a href="#获取当前时间值" class="headerlink" title="获取当前时间值"></a>获取当前时间值</h5><blockquote>
+<p>time_t time(time_t *t);<br>time_t mktime(struct tm *tm);<br><code>time()</code>可以从当前系统中获取时间值并返回，如果参数<code>t</code>不为NULL，则时间值同样也会存储中<code>t</code>中。<br>如果函数执行异常，则返回-1，可通过<code>errno</code>查询出错原因。<br><code>mktime()</code>则是将<code>struct tm</code>逆解析为<code>time_t</code>的函数。<br>如果参数<code>tm</code>是由用户自己组装的，则<code>tm</code>中的<code>tm_wday</code>和<code>tm_yday</code>会在本函数执行后根据<code>tm</code>中的<code>tm_year``tm_mon</code>…等字段计算为真实的值。</p>
+</blockquote>
+<h5 id="获取时间详情"><a href="#获取时间详情" class="headerlink" title="获取时间详情"></a>获取时间详情</h5><p>时间详情也就是上文所说的<code>struct tm</code>，manual中也把<code>struct tm</code>称为<strong>broken-down time</strong>。相关函数：</p>
+<blockquote>
+<p>struct tm *gmtime(const time_t *timep);<br>struct tm *gmtime_r(const time_t *timep, struct tm *result);</p>
+<p>struct tm *localtime(const time_t *timep);<br>struct tm *localtime_r(const time_t *timep, struct tm *result);</p>
+</blockquote>
+<p><code>gmtime()</code>和<code>localtime()</code>都可以把时间值转换为时间详情，两者的区别在于<code>gmtime()</code>所得到的结果是世界标准时间<code>Coordinated Universal Time (UTC)</code>；而<code>localtime()</code>获取的是本地时间。以北京时间为例，<code>gmtime()</code>得到的结果比<code>localtime()</code>要提前(早)8小时。</p>
+<p><code>gmtime_r()</code>和<code>localtime_r()</code>分别是<code>gmtime()</code>及<code>localtime()</code>的可重入实现版本。</p>
+<p>当函数执行错误时，则返回NULL，可通过<code>errno</code>查询出错原因。</p>
+<h5 id="格式化的时间字符串"><a href="#格式化的时间字符串" class="headerlink" title="格式化的时间字符串"></a>格式化的时间字符串</h5><blockquote>
+<p>char *asctime(const struct tm *tm);<br>char *asctime_r(const struct tm *tm, char *buf);</p>
+<p>char *ctime(const time_t *timep);<br>char *ctime_r(const time_t *timep, char *buf);</p>
+</blockquote>
+<p><code>asctime()</code>能直接从时间详情中计算出时间字符串，该字符串包含字符串终止符，计算出来的时间字符串格式是固定的，示例为：<code>Wed Jun 30 21:49:08 1993\n</code>。<br><code>ctime()</code>则是<code>asctime(localtime(time_t))</code>的封装实现。</p>
+<p><code>asctime_r()</code>和<code>ctime_r()</code>分别是<code>asctime()</code>及<code>ctime()</code>的可重入实现版本。</p>
+<ul>
+<li><p>注意：以上函数返回的字符串都会包含换行符<code>\n</code>。    </p>
+<h2 id=""><a href="#" class="headerlink" title=" "></a> </h2></li>
+</ul>
+<blockquote>
+<p>size_t strftime(char *s, size_t max, const char *format, const struct tm *tm);</p>
+</blockquote>
+<p>C语言为了格式化输出时间信息又提供了强大的格式化函数<code>strftime()</code>，支持按自定义的格式打印出完整可阅读的时间信息，包括月份的全称或简称，或只选择某些关键时间值进行输出。<br>参数<code>s</code>指向格式化后的时间字符串。<br>参数<code>max</code>表示时间字符串的最大字符数(含字符串终止符)。<br>参数<code>format</code>表示时间字符串的格式化表达式。<br>参数<code>tm</code>表示待格式化的时间详情。</p>
+<p>其中<code>format</code>表达式支持格式化参数与字符混合使用，且所支持的格式化参数非常多，具体可以查阅manual。</p>
+<p>下面仅挑几个常用的来说：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">格式化参数</th>
+<th style="text-align:left">含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">%Y</td>
+<td style="text-align:left">完整的年数字</td>
+</tr>
+<tr>
+<td style="text-align:left">%m</td>
+<td style="text-align:left">月份，如月份是1~9,则数字前填充一个’0’。</td>
+</tr>
+<tr>
+<td style="text-align:left">%d</td>
+<td style="text-align:left">日子</td>
+</tr>
+<tr>
+<td style="text-align:left">%F</td>
+<td style="text-align:left">等同于“%Y-%m-%d”</td>
+</tr>
+<tr>
+<td style="text-align:left">%H</td>
+<td style="text-align:left">小时数</td>
+</tr>
+<tr>
+<td style="text-align:left">%M</td>
+<td style="text-align:left">分钟数</td>
+</tr>
+<tr>
+<td style="text-align:left">%S</td>
+<td style="text-align:left">秒数</td>
+</tr>
+<tr>
+<td style="text-align:left">%_m</td>
+<td style="text-align:left">月份，如果月份是1~9，则数字前有一个空格填充。</td>
+</tr>
+<tr>
+<td style="text-align:left">%-m</td>
+<td style="text-align:left">月份，如果月份是1~9，仍只显示该数字。</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h1 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a><a name="time_demo">示例代码</a></h1><p>在这里要多提及一个时间计算函数：</p>
+<blockquote>
+<p>double difftime(time_t time1, time_t time0);</p>
+</blockquote>
+<p>用于计算<code>time1</code>与<code>time0</code>之间的时间差，并转换为<code>double</code>，即结果为秒数。</p>
+<p>下面是以上提及的所有函数的示例代码：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line">//  author:sodino@qq.com</div><div class="line"></div><div class="line">#include &lt;stdio.h&gt;</div><div class="line">#include &lt;stdlib.h&gt;</div><div class="line">#include &lt;time.h&gt;</div><div class="line"></div><div class="line">int main (int argc, char ** argv) &#123;</div><div class="line">    time_t calendar_time = time(NULL);</div><div class="line">    printf(&quot;calendar_time :%ld \n&quot;, calendar_time);</div><div class="line">    </div><div class="line">    char * calendar_str = ctime(&amp;calendar_time);</div><div class="line">    printf(&quot;calendar_str  :%s \n&quot;, calendar_str);</div><div class="line">    </div><div class="line">    struct tm * tm_local = localtime(&amp;calendar_time);</div><div class="line">    printf(&quot;localtime :year=%d mon=%d mday=%d hour=%d min=%d sec=%d   wday=%d yday=%d isdst=%d \n&quot;,</div><div class="line">           tm_local-&gt;tm_year + 1900, tm_local-&gt;tm_mon + 1, tm_local-&gt;tm_mday, tm_local-&gt;tm_hour, tm_local-&gt;tm_min, tm_local-&gt;tm_sec,</div><div class="line">           tm_local-&gt;tm_wday, tm_local-&gt;tm_yday, tm_local-&gt;tm_isdst);</div><div class="line"></div><div class="line">    </div><div class="line">    char * asc_time = asctime(tm_local);</div><div class="line">    printf(&quot;asc_time  :%s&quot;, asc_time);</div><div class="line">    char * c_time = ctime(&amp;calendar_time);</div><div class="line">    printf(&quot;c_time    :%s&quot;, c_time);</div><div class="line">    </div><div class="line">    time_t mk_time = mktime(tm_local);</div><div class="line">    printf(&quot;\nmk_time   :%ld \n\n&quot;, mk_time);</div><div class="line">    </div><div class="line">    </div><div class="line">    char str_f_t [100];</div><div class="line">    strftime(str_f_t, sizeof(str_f_t), &quot;%G-%m-%d %H:%M:%S&quot;, tm_local);</div><div class="line">    printf(&quot;local  :format=%s \n&quot;, str_f_t);</div><div class="line">    struct tm * gm_time = gmtime(&amp;calendar_time);</div><div class="line">    strftime(str_f_t, sizeof(str_f_t), &quot;%G-%m-%d %H:%M:%S&quot;, gm_time);</div><div class="line">    printf(&quot;gmtime :format=%s \n\n&quot;, str_f_t);</div><div class="line">    </div><div class="line">    struct tm my_tm = &#123;2,2,2,16,2,2015,0,0,0&#125;;</div><div class="line">    time_t my_time_t = mktime(&amp;my_tm);</div><div class="line">    printf(&quot;my yday:%d \n&quot;, my_tm.tm_yday);</div><div class="line">    </div><div class="line">    return 0;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>执行效果：<br><img src="http://ww3.sinaimg.cn/mw1024/e3dc9ceagw1eq80nty276j20fr05mmyf.jpg" alt="c.time.output"></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/C-C/">C/C++</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/C-C/">C/C++</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://sodino.com/2015/03/15/c-time/" data-title="【C/C++】日常时间的获取、格式化等操作汇总 | Sodino&#39;s Blog" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/03/17/c-the-object-of-type-xx-is-not-a-function-or-a-function-pointer/" title="【C/C++】error - called object type &#39;char *&#39; is not a function or function pointer">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  【C/C++】error - called object type &#39;char *&#39; is not a function or function pointer</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/03/14/c-macro/"  title="【C/C++】宏(macro)定义与使用">
+ <strong>NEXT:</strong><br/> 
+ <span>【C/C++】宏(macro)定义与使用
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#C支持的日常时间种类"><span class="toc-number">1.</span> <span class="toc-text">C支持的日常时间种类</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#日常时间函数的调用关系"><span class="toc-number">2.</span> <span class="toc-text">日常时间函数的调用关系</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#日常时间函数的讲解"><span class="toc-number">3.</span> <span class="toc-text">日常时间函数的讲解</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#获取当前时间值"><span class="toc-number">3.0.0.0.1.</span> <span class="toc-text">获取当前时间值</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#获取时间详情"><span class="toc-number">3.0.0.0.2.</span> <span class="toc-text">获取时间详情</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#格式化的时间字符串"><span class="toc-number">3.0.0.0.3.</span> <span class="toc-text">格式化的时间字符串</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#"><span class="toc-number">3.1.</span> <span class="toc-text"> </span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#示例代码"><span class="toc-number">4.</span> <span class="toc-text">示例代码</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	<div class="social-list" class="clearfix">
+		
+		<a href="http://weibo.com/3822886122" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/sodino" target="_blank" title="github"></a>
+		
+		
+		
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/android/" title="Android">Android<sup>13</sup></a></li>
+		
+			<li><a href="/categories/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/categories/C-C/" title="C/C++">C/C++<sup>26</sup></a></li>
+		
+			<li><a href="/categories/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/categories/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/categories/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/categories/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/categories/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Android/" title="Android">Android<sup>18</sup></a></li>
+		
+			<li><a href="/tags/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>25</sup></a></li>
+		
+			<li><a href="/tags/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/tags/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/tags/NDK/" title="NDK">NDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/tags/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/tags/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/tags/object-Object/" title="[object Object]">[object Object]<sup>1</sup></a></li>
+		
+			<li><a href="/tags/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+			<li><a href="/tags/markdown/" title="markdown">markdown<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://blog.csdn.net/sodino" target="_blank" title="Sodino Csdn">CSDN's Blog</a></li>
+    </ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Android/" style="font-size: 18.75px;">Android</a> <a href="/tags/AndroidStudio/" style="font-size: 13.75px;">AndroidStudio</a> <a href="/tags/C-C/" style="font-size: 20px;">C/C++</a> <a href="/tags/Eclipse/" style="font-size: 10px;">Eclipse</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/JDK/" style="font-size: 10px;">JDK</a> <a href="/tags/JNI/" style="font-size: 11.25px;">JNI</a> <a href="/tags/Java/" style="font-size: 10px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/LBS/" style="font-size: 10px;">LBS</a> <a href="/tags/Linux/" style="font-size: 16.25px;">Linux</a> <a href="/tags/Mac/" style="font-size: 11.25px;">Mac</a> <a href="/tags/NDK/" style="font-size: 10px;">NDK</a> <a href="/tags/Node-js/" style="font-size: 17.5px;">Node.js</a> <a href="/tags/Proguard/" style="font-size: 11.25px;">Proguard</a> <a href="/tags/React-Native/" style="font-size: 10px;">React-Native</a> <a href="/tags/object-Object/" style="font-size: 10px;">[object Object]</a> <a href="/tags/blog/" style="font-size: 12.5px;">blog</a> <a href="/tags/markdown/" style="font-size: 10px;">markdown</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://sodino.com" target="_blank" title="Sodino">Sodino</a>
+		
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"sodino"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+<script>
+    
+        var _bdImg = '4';
+    
+    window._bd_share_config={
+        "common":{
+            "bdSnsKey":{
+
+            },
+            "bdText":"",
+            "bdMini":"2",
+            "bdMiniList":[
+                "qzone",
+                "tsina",
+                "weixin",
+                "renren",
+                "tqq",
+                "tieba",
+                "douban",
+                "sqq",
+                "diandian",
+                "huaban",
+                "youdao",
+                "mail",
+                "ty",
+                "fbook",
+                "twi",
+                "linkedin",
+                "copy",
+                "print"
+            ],
+            "bdPic":"",
+            "bdStyle":"0",
+            "bdSize":"16"
+        },
+        "slide":{
+            "type":"slide",
+            "bdImg":_bdImg,
+            "bdPos":"right",
+            "bdTop":"350"
+        },
+        "image":{
+            "viewList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ],
+            "viewText":"分享：",
+            "viewSize":"16"
+        },
+        "selectShare":{
+            "bdContainerClass":null,
+            "bdSelectMiniList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ]
+        }
+    };
+    with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'null', 'null');  
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+</html>
+

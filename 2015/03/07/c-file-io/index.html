@@ -1,0 +1,698 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="baidu_union_verify" content="d1952c66cf48912e21c18c7c581f382a">
+  <meta name="360-site-verification" content="67fbcc5a67f4c65c057315b28fa0b2c8" />
+<meta name="google-site-verification" content="2GzxQ0VtXwTSUdmGm6DzcmhTzM_I9QmzCb_pzpMzD88" />
+  
+    <title>【C/C++】文件创建、打开、读、写、复制、关闭、删除等操作汇总 | Sodino&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Sodino">
+    
+    <meta name="description" content="本文讲述Linux C 中对文件的操作。分为以下几部分内容：
+
+打开方式 (包含 创建 能力)
+读、写操作
+读、写单个字符读、写字符串格式化读、写操作
+
+
+数据块的读写
+错误码判断与操作
+位置指针移动
+关闭文件
+删除文件
+
+以上操作涉及的函数#include &amp;lt;stdio.h&amp;gt;即可。
+
+">
+    
+    
+    
+    
+    <link rel="alternate" href="atom.xml" title="Sodino&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='391982416296a0d54221f59fe35250d4';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+     
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Sodino&#39;s Blog">Sodino&#39;s Blog</a></h1>
+				<a class="blog-motto">见多食广 与食巨近</a>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于我</a></li>
+					
+					<li>
+					
+                                            <form class="search" action=http://zhannei.baidu.com/cse/search target="_blank">
+                                            <label>Search</label>
+                                        <input name="s" type="hidden" value= null ><input type="text" name="q" size="30" placeholder="搜索"><br>
+					
+					</li>
+				</ul>
+                            </nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/03/07/c-file-io/" title="【C/C++】文件创建、打开、读、写、复制、关闭、删除等操作汇总" itemprop="url">【C/C++】文件创建、打开、读、写、复制、关闭、删除等操作汇总</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://sodino.com" title="Sodino">Sodino</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2015-03-07T04:05:13.000Z" itemprop="datePublished">2015 03 07</time>
+    更新日期:<time datetime="2015-03-18T14:56:23.000Z" itemprop="dateModified">2015 03 18</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+		</div>
+		
+		<p>本文讲述Linux C 中对文件的操作。分为以下几部分内容：</p>
+<ol>
+<li><a href="#fopen">打开方式 (包含 <em>创建</em> 能力)</a></li>
+<li><a href="#f_read_write">读、写操作</a><blockquote>
+<p><a href="#f_read_write_char">读、写单个字符</a><br><a href="#f_read_write_string">读、写字符串</a><br><a href="#f_read_write_format">格式化读、写操作</a></p>
+</blockquote>
+</li>
+<li><a href="#f_data">数据块的读写</a></li>
+<li><a href="#f_errno">错误码判断与操作</a></li>
+<li><a href="#file_site">位置指针移动</a></li>
+<li><a href="#f_close">关闭文件</a></li>
+<li><a href="#f_remove">删除文件</a></li>
+</ol>
+<p>以上操作涉及的函数<code>#include &lt;stdio.h&gt;</code>即可。</p>
+<hr>
+<p>#<a name="fopen">打开方式</a></p>
+<blockquote>
+<p>FILE *fopen(const char *path, const char *mode);<br>FILE *fdopen(int fd, const char *mode);<br>FILE *freopen(const char *path, const char *mode, FILE *stream);   </p>
+</blockquote>
+<p>打开一个文件可以用以上三个函数来实现，该函数执行后则会有相应的流与FILE*绑定。<br>如果函数正常执行则会返回FILE *,否则返回NULL，且具体的失败原因可以从<code>errno</code>中查询。</p>
+<p>#####FILE *fopen(const char *path, const char *mode);   #####</p>
+<p><code>fopen()</code>的第一个参数<code>path</code>用于指定要打开的文件名，第二个参数<code>mode</code>指定打开的方式模式。打开文件的模式可以是下列表中的某一项，或者某几项的组合。下表中给出了子模式的含义，且与其它模式的区别。</p>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>文件不存在</th>
+<th>读写能力</th>
+<th>读位置</th>
+<th>写位置</th>
+<th>写操作对原文件内容影响</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>r</td>
+<td>—-</td>
+<td>只读</td>
+<td>文件开头</td>
+<td>—-</td>
+<td>—-</td>
+</tr>
+<tr>
+<td>r+</td>
+<td>—-</td>
+<td>读写</td>
+<td>文件开头</td>
+<td>文件开头</td>
+<td>原内容被新内容从文件开头按顺序被逐个字符地覆盖</td>
+</tr>
+<tr>
+<td>w</td>
+<td>创建</td>
+<td>只写</td>
+<td>—-</td>
+<td>文件开头</td>
+<td>原内容被清空，新内容从文件开头写入</td>
+</tr>
+<tr>
+<td>w+</td>
+<td>创建</td>
+<td>读写</td>
+<td>文件开头</td>
+<td>文件开头</td>
+<td>原内容被清空，新内容从文件开头写入</td>
+</tr>
+<tr>
+<td>a</td>
+<td>创建</td>
+<td>只写</td>
+<td>—-</td>
+<td>文件结尾</td>
+<td>新内容写在原内容后面</td>
+</tr>
+<tr>
+<td>a+</td>
+<td>创建</td>
+<td>读写</td>
+<td>文件开头</td>
+<td>文件结尾</td>
+<td>新内容写在原内容后面</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>r: read w:write a:append b:binary   </p>
+</blockquote>
+<p>有些时候会看到文件打开模式除了上面的几种情况或由这几种情况的任意组合外，还会有和<code>b</code>的组合，含义是：<br>出现<code>b</code>表示以 <em>二进制文件方式</em> 操作文件，否则以 <em>文本文件方式</em> 操作。</p>
+<p>模式<code>w+</code>和<code>a+</code>虽然都具有读权限，但实践中有可能出现无法读出文件中的内容，原因如下：</p>
+<ul>
+<li>使用<code>fopen</code>时<code>w+</code>一开始会把文件清空，这时候去读是没有内容的；写操作完毕后文件已经有内容了，这时候直接去读取，由于文件指针位置在文件末尾，所以仍然无法读取到内容，得把<code>文件指针位置</code>移动到文件之前的位置，才有内容可以读出。</li>
+<li>使用<code>a+</code>时，情形同<code>w+</code>相似，<code>文件指针位置</code>是在文件的结束位置，导致读不出内容。</li>
+</ul>
+<p>示例代码将在文章的下半部分<a href="#file_site">文件位置指针移动</a>中给出。</p>
+<p>#####FILE *fdopen(int fd, const char *mode);#####    </p>
+<p><code>fdopen()</code>是使用文件描述符<code>fd</code>来操作文件流的。<br>功能几乎与<code>fopen()</code>相似。差别在于   </p>
+<ul>
+<li><code>fdopen()</code>在使用模式<code>w</code>和<code>w+</code>时，并不会对原有的文件内容进行清空操作；   </li>
+<li><code>fdopen()</code>可以直接使用<code>STDIN_FILENO</code>(mode要具备<code>r</code>权限)、<code>STDOUT_FILENO</code>(mode要具备<code>w</code>权限)、<code>STDERR_FILENO</code>(mode要具备<code>w</code>权限)来操作标准输入输出流。  </li>
+</ul>
+<p>相关：函数<code>fileno()</code>可以获取某个文件的<code>fd</code>。</p>
+<blockquote>
+<p>int fileno(FILE *stream);</p>
+</blockquote>
+<p>示例，以下代码演示从终端命令行中敲入一个字符并打印出来。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#incluce <span class="meta-string">&lt;unistd.h&gt;</span></span></div><div class="line"><span class="meta">#incluce <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#incluce <span class="meta-string">&lt;stdlib.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</div><div class="line">    FILE* file = fdopen(STDIN_FILENO, <span class="string">"r"</span>);</div><div class="line">    <span class="keyword">if</span> (file == <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"fopen fail:%s "</span>, filePath);</div><div class="line">        perror(<span class="string">""</span>);</div><div class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">int</span> ch = fgetc(file);</div><div class="line">    <span class="keyword">if</span> (ch == EOF) &#123;</div><div class="line">        <span class="keyword">if</span> (errno != <span class="number">0</span>) &#123;</div><div class="line">            perror(<span class="string">"fgetc fail:"</span>);</div><div class="line">            <span class="built_in">printf</span>(<span class="string">"feof %d \n"</span>, feof(file));</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="built_in">printf</span>(<span class="string">"read file end. %d \n"</span>, feof(file));</div><div class="line">        &#125;</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"fgetc:%c \n"</span>, ch);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    fclose(file);</div><div class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>#####FILE *freopen(const char *path, const char *mode, FILE *stream); #####<br><code>freopen()</code>的功能是将一个已经打开的流(参数中的stream,可以是文件也可以是标准输出输入流)重定向到另一个流(函数返回值)中去，重定向的位置由参数<code>path</code>决定。</p>
+<p>示例代码：将标准输出流重定向到指定文件<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#incluce <span class="meta-string">&lt;unistd.h&gt;</span></span></div><div class="line"><span class="meta">#incluce <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#incluce <span class="meta-string">&lt;stdlib.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</div><div class="line">    FILE * tmp;</div><div class="line">    <span class="comment">// 重定向标准输出流到指定的文件中去</span></div><div class="line">    <span class="keyword">if</span>((tmp = freopen(<span class="string">"/Users/sodino/reopen.txt"</span>, <span class="string">"w"</span>, <span class="built_in">stdout</span>)) == <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="comment">// 重定向失败，打印失败日志</span></div><div class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,<span class="string">"error1:redirecting stdout \n"</span>);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="comment">// 重定向成功，下面这个语句将会输出到上面指定的文件中去，且不会在命令行终端中显示</span></div><div class="line">        <span class="built_in">printf</span>(<span class="string">"This will go into a file. %d\n"</span>, (tmp == <span class="built_in">stdout</span>));</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// 重定向后，可以继续重定向流到其它文件，之前的文件不再接受后续的写入</span></div><div class="line">    <span class="keyword">if</span>((tmp = freopen(<span class="string">"/Users/sodino/reopen.2.txt"</span>, <span class="string">"w"</span>, <span class="built_in">stdout</span>)) == <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>,<span class="string">"error1 redirecting stdout\n"</span>);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"2This will go into a file. %d\n"</span>, (tmp == <span class="built_in">stdout</span>));</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// 关闭流：输出流，则xcode的控制台区域会自动关闭</span></div><div class="line">    fclose(tmp);</div><div class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<hr>
+<p>#<a name="f_read_write">读、写操作</a></p>
+<p>#####<a name="f_read_write_char">读、写单个字符#####<br>读：</a></p>
+<blockquote>
+<p>int fgetc(FILE *stream);<br>int getc(FILE *stream);<br>int getchar(void);</p>
+</blockquote>
+<p><code>fgetc()</code>从指定的流中读取下一个字符，把unsigned char强制转换成int。<br><code>getc()</code>功能与<code>fgetc()</code>一致，只是在函数执行时可能会对流多做一次评估验证。<br><code>getchar()</code>功能等同于<code>getc(stdin)</code>。</p>
+<p>以上三个函数在正常执行时都会返回读取到的字符<code>int</code>，在发生错误或已经读到流的结束位置则返回<code>EOF</code>。</p>
+<p>写：</p>
+<blockquote>
+<p>int fputc(int c, FILE *stream);<br>int putc(int c, FILE *stream);<br>int putchar(int c);</p>
+</blockquote>
+<p><code>fputc()</code>将int转化为unsigned char并写入流中。<br><code>putc()</code>功能与<code>fputc()</code>一致，只是在函数执行时可能会对流多做一次评估验证。<br><code>putchar()</code>功能等同于<code>putc(c, stdout)</code>。</p>
+<p>三个函数在正常执行时会将写入的字符<code>c</code>返回，在执行发生错误时则返回<code>EOF</code>。</p>
+<p><a name="file_io_copy_demo">Copy Demo</a></p>
+<p>下面的示例代码演示复制一个文件的过程,<code>copyFile_str()</code>是逐字节复制，而<code>copyFile_data()</code>是每次8KB的数据块在复制，所以效率会高一些。<code>fread()</code>及<code>fwrite()</code>将会在下文中继续提到。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div><div class="line">140</div><div class="line">141</div><div class="line">142</div><div class="line">143</div><div class="line">144</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="comment">/**复制成功返回复制的文件大小；否则返回-1。*/</span></div><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">long</span> <span class="title">copyFile</span><span class="params">(FILE*src, FILE*dest)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (src == <span class="literal">NULL</span> || dest == <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">if</span> (ftell(src) &gt; <span class="number">0</span>) &#123;</div><div class="line">        rewind(src);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">int</span> res = <span class="number">0</span>;</div><div class="line">    <span class="keyword">long</span> count = <span class="number">0</span>; <span class="comment">// 进度。</span></div><div class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</div><div class="line">        <span class="keyword">int</span> ch = fgetc(src);</div><div class="line"></div><div class="line">        <span class="keyword">if</span> (ch == EOF) &#123;</div><div class="line">            <span class="keyword">if</span> (!feof(src)) &#123;</div><div class="line">                <span class="built_in">printf</span>(<span class="string">"fgetc() break res=-1. count=%ld \n"</span>, count);</div><div class="line">                res = <span class="number">-1</span>; <span class="comment">// 失败</span></div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                <span class="comment">// 正常的结尾</span></div><div class="line">            &#125;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">int</span> tmp = fputc(ch, dest);</div><div class="line">            <span class="keyword">if</span> (tmp == EOF) &#123;</div><div class="line">                res = <span class="number">-1</span>;</div><div class="line">                <span class="built_in">printf</span>(<span class="string">"fputc() break res=-1. count=%ld \n"</span>, count);</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            &#125;</div><div class="line">            count ++;</div><div class="line">            <span class="keyword">continue</span>; <span class="comment">// 继续复制</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">return</span> (res == <span class="number">-1</span>)?<span class="number">-1L</span>:count;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">long</span> <span class="title">copyFile_str</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> *srcPath, <span class="keyword">const</span> <span class="keyword">char</span> *destPath)</span> </span>&#123;</div><div class="line">    FILE * src = fopen(srcPath,<span class="string">"r"</span>);</div><div class="line">    FILE * dest = fopen(destPath,<span class="string">"w"</span>);</div><div class="line">    </div><div class="line">    <span class="keyword">long</span> res = copyFile(src, dest);</div><div class="line"></div><div class="line">    fclose(dest);</div><div class="line">    fclose(src);</div><div class="line">    </div><div class="line">    <span class="keyword">return</span> res;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">long</span> <span class="title">copyFileData</span><span class="params">(FILE*src, FILE*dest)</span> </span>&#123;</div><div class="line">    <span class="keyword">if</span> (src == <span class="literal">NULL</span> || dest == <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="keyword">return</span> <span class="number">-1</span>;</div><div class="line">    &#125;</div><div class="line"></div><div class="line">    <span class="comment">// 指针移动到文件末尾</span></div><div class="line">    fseek(src, <span class="number">0</span>, SEEK_END);</div><div class="line">    <span class="comment">// 获取文件大小</span></div><div class="line">    <span class="keyword">long</span> file_size = ftell(src);</div><div class="line">    <span class="comment">// 指针回到文件头</span></div><div class="line">    rewind(src);</div><div class="line">    </div><div class="line">    <span class="keyword">int</span> res = <span class="number">0</span>;</div><div class="line">    <span class="keyword">long</span> count = <span class="number">0</span>; <span class="comment">// 进度。</span></div><div class="line">    </div><div class="line">    <span class="keyword">const</span> <span class="keyword">int</span> LEN_DATA = <span class="number">8</span>*<span class="number">1024</span>;</div><div class="line">    <span class="keyword">unsigned</span> <span class="keyword">char</span> data[LEN_DATA];</div><div class="line"><span class="comment">//    printf("size: %lu \n", sizeof(data));</span></div><div class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</div><div class="line">        <span class="comment">// 获取当前位置</span></div><div class="line">        <span class="keyword">long</span> current = ftell(src);</div><div class="line">        <span class="comment">// 计算剩余量</span></div><div class="line">        <span class="keyword">long</span> leave = file_size - current;</div><div class="line">        <span class="keyword">int</span> readSize = LEN_DATA;</div><div class="line">        <span class="keyword">if</span> (leave == <span class="number">0</span>) &#123;</div><div class="line">            <span class="comment">// 拷贝结束了。</span></div><div class="line">            <span class="built_in">printf</span>(<span class="string">"leave == 0 feof.\n"</span>);</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (leave &lt; LEN_DATA) &#123;</div><div class="line">            <span class="comment">// 拷贝快结束了，但数据量已经小于LEN_DATA了</span></div><div class="line">            readSize = (<span class="keyword">int</span>)leave;</div><div class="line">        &#125;</div><div class="line">        <span class="comment">// 读取数据块</span></div><div class="line">        <span class="keyword">size_t</span> <span class="keyword">res_t</span> = fread(&amp;data, <span class="number">1</span>, readSize, src);</div><div class="line">        <span class="keyword">if</span> (<span class="keyword">res_t</span> == readSize) &#123;</div><div class="line">            <span class="comment">// 正常读取</span></div><div class="line">            <span class="keyword">size_t</span> w_res = fwrite(&amp;data, <span class="number">1</span>, <span class="keyword">res_t</span>, dest);</div><div class="line">            count += w_res;</div><div class="line">            <span class="keyword">if</span> (<span class="keyword">res_t</span> == w_res) &#123;</div><div class="line">                <span class="built_in">printf</span>(<span class="string">"write=%ld res_t=%zu \n"</span>, count, <span class="keyword">res_t</span>);</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                <span class="built_in">printf</span>(<span class="string">"fwrite fail. \n"</span>);</div><div class="line">                res = <span class="number">-1</span>;</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            &#125;</div><div class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (feof(src) != <span class="number">0</span>)&#123;</div><div class="line">            <span class="built_in">printf</span>(<span class="string">"feof res_t=%zu \n"</span>, <span class="keyword">res_t</span>);</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="built_in">printf</span>(<span class="string">"fread fail...\n"</span>);</div><div class="line">            res = <span class="number">-1</span>;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    </div><div class="line">    <span class="keyword">return</span> (res == <span class="number">-1</span>)?<span class="number">-1</span>:count;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">long</span> <span class="title">copyFile_data</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span> * srcPath, <span class="keyword">const</span> <span class="keyword">char</span> *destPath)</span> </span>&#123;</div><div class="line">    FILE * src = fopen(srcPath,<span class="string">"r"</span>);</div><div class="line">    FILE * dest = fopen(destPath,<span class="string">"w"</span>);</div><div class="line">    </div><div class="line">    <span class="keyword">long</span> res = copyFileData(src, dest);</div><div class="line">    </div><div class="line">    fclose(dest);</div><div class="line">    fclose(src);</div><div class="line">    </div><div class="line">    <span class="keyword">return</span> res;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)</span> </span>&#123;</div><div class="line">    <span class="keyword">char</span> *srcPath = <span class="string">"/Users/sodino/workspace/xcode/CString/CString/a.out"</span>;</div><div class="line">    <span class="keyword">char</span> *destPath = <span class="string">"/Users/sodino/workspace/xcode/CString/CString/a1.out"</span>;</div><div class="line">    <span class="keyword">long</span> res = copyFile_str(srcPath, destPath);</div><div class="line">    </div><div class="line">    <span class="keyword">if</span> (res == <span class="number">-1</span>)&#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"copyFile_str() fail. \n\n\n"</span>);</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"copyFile_str() count=%d. \n\n\n"</span>, res);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="built_in">printf</span>(<span class="string">"do copyFile_data() \n"</span>);</div><div class="line">    res = copyFile_data(srcPath, destPath);</div><div class="line">    <span class="built_in">printf</span> (<span class="string">"copy.file.length=%ld \n"</span>, res);</div><div class="line">    <span class="keyword">if</span> (res == <span class="number">-1</span>) &#123;</div><div class="line">        <span class="keyword">return</span> EXIT_FAILURE;</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        <span class="keyword">return</span> EXIT_SUCCESS;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>#####<a name="f_read_write_string">读、写字符串#####<br>读：</a></p>
+<blockquote>
+<p>char *fgets(char *s, int size, FILE *stream);</p>
+</blockquote>
+<p>从流中读取一个小于<code>size</code>长度的字符串，并将读到的字符串<code>s</code>返回。在读取过程中如果碰到<code>EOF</code>或换行，则把已经读到的字符串返回不再继续往下读取。返回的字符串会自动加上字符串终止符<code>/0</code>，字符串终止符是算在<code>size</code>里面的，所以得到的字符串一直是小于<code>size</code>的。<br>当执行发生错误或已经读到流的结束位置了则返回NULL。</p>
+<p>写：</p>
+<blockquote>
+<p>int fputs(const char *s, FILE *stream);<br>int puts(const char *s);     </p>
+</blockquote>
+<p><code>fputs()</code>会将参数中字符串<code>s</code>去掉字符串终止符<code>/0</code>然后写入指定的流中去。<br><code>puts()</code>相当于<code>fputs(s, stdout)</code>，即把字符串输出到标准输出流中去，且会在字符串后面自动加上换行符。</p>
+<p>当函数正常执行时，则返回一个非0的数字代表写入的字符个数；否则返回<code>EOF</code>。</p>
+<p>#####<a name="f_read_write_format">格式化读、写操作#####<br><code>#include &lt;stdio.h&gt;</code></a></p>
+<blockquote>
+<p>int fscanf(FILE *stream, const char *format, …);  // 格式化读<br>int fprintf(FILE *stream, const char *format, …); // 格式化写</p>
+</blockquote>
+<p>之前的文章已经讲过了<a href="http://sodino.com/2015/02/01/c-printf-desc/">printf()</a>强大的日志打印功能，在文件流的读、写上<code>fprintf()</code>相当于是把<code>printf()</code>的内容写入到指定的流中去；<code>fscanf()</code>则是<code>fprintf()</code>的反操作，读。</p>
+<p>示例代码将在<a href="#file_site">文件位置指针移动</a>中给出。</p>
+<hr>
+<p>#<a name="f_data">数据块的读写</a></p>
+<blockquote>
+<p>size_t fread(void *ptr, size_t size, size_t nmemb, FILE *stream);<br>size_t fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);</p>
+</blockquote>
+<p><code>fread()</code>用于流操作中数据块的读取。将读到的数据存储于第一个参数<code>ptr</code>中，第二个参数<code>size</code>告诉函数每个数据块的大小，第三个参数<code>nmemb</code>指明要读取数据块的数量，第四个参数<code>stream</code>指明读取的数据流。<br>本函数正常执行完毕后返回数据块的读取数量，即<code>nmemb</code>;当执行出现错误或遇到了文件结束的位置时，则返回0或比<code>nmemb</code>小的数。至于是出现错误还是文件结束导致的非正常执行，则要通过<code>feof()</code>和<code>ferror()</code>来判断。</p>
+<p><code>fwrite()</code>用于流操作中的数据块写入。第一个参数<code>ptr</code>表示要写入的数据，第二个参数<code>size</code>告诉函数每个数据块的大小，第三个参数<code>nmemb</code>指明要写入数据块的数量，第四个参数<code>stream</code>指明写入的数据流。<br>本函数正常执行完毕后返回数据块的读取数量，即<code>nmemb</code>;当执行出现错误，则返回0或比<code>nmemb</code>小的数。</p>
+<p>这两个方法经常用于二进制文件的操作，所以打开方式上要与<code>b</code>模式组合。</p>
+<p>示例代码：批量读写 <code>sturct student</code>:<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">struct</span> <span class="title">student</span> &#123;</span></div><div class="line">    <span class="keyword">char</span> name[<span class="number">25</span>];</div><div class="line">    <span class="keyword">char</span> sex;</div><div class="line">    <span class="class"><span class="keyword">struct</span> &#123;</span></div><div class="line">        <span class="keyword">int</span> year;</div><div class="line">        <span class="keyword">int</span> month;</div><div class="line">        <span class="keyword">int</span> day;</div><div class="line">    &#125;birthday;</div><div class="line">    <span class="keyword">float</span> BWH[<span class="number">3</span>];<span class="comment">// bust, waist and hips</span></div><div class="line">&#125;;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> ** argv)</span> </span>&#123;</div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">student</span> <span class="title">pes</span>[3] = &#123;</span>&#123;<span class="string">"jack ma"</span>,<span class="string">'M'</span>,<span class="number">1985</span>,<span class="number">2</span>,<span class="number">22</span>,<span class="number">80</span>,<span class="number">95</span>,<span class="number">60.5</span>&#125;,</div><div class="line">        &#123;<span class="string">"pony"</span>,<span class="string">'F'</span>,<span class="number">1984</span>,<span class="number">1</span>,<span class="number">2</span>,<span class="number">57</span>,<span class="number">60</span>,<span class="number">78</span>&#125;,</div><div class="line">        &#123;<span class="string">"robin"</span>,<span class="string">'F'</span>,<span class="number">1995</span>,<span class="number">3</span>,<span class="number">2</span>,<span class="number">77.0</span>,<span class="number">90</span>,<span class="number">77.5</span>&#125;</div><div class="line">    &#125;;</div><div class="line">    </div><div class="line">    <span class="keyword">int</span> i;</div><div class="line">    FILE *fpr;</div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">student</span> <span class="title">b</span>;</span></div><div class="line">    fpr = fopen(<span class="string">"W.DAT"</span>,<span class="string">"wb+"</span>);</div><div class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">3</span>;i++) &#123;</div><div class="line">        fwrite(pes+i,<span class="keyword">sizeof</span>(struct student),<span class="number">1</span>,fpr);</div><div class="line">    &#125;</div><div class="line">    <span class="comment">//    上面的for循环等价于下面这一句</span></div><div class="line">    <span class="comment">//    fwrite(pes,sizeof(struct student),3,fpr);</span></div><div class="line">    </div><div class="line">    <span class="comment">// 将文件指针移动到初始位置进行读操作</span></div><div class="line">    fseek(fpr,<span class="number">0L</span>,SEEK_SET);</div><div class="line">    </div><div class="line">    <span class="keyword">for</span>(i=<span class="number">0</span>;i&lt;<span class="number">3</span>;i++) &#123;</div><div class="line">        fread(&amp;b,<span class="keyword">sizeof</span>(struct student),<span class="number">1</span>,fpr);</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"%7s  "</span>,b.name); <span class="comment">// 打印名字默认使用7个字符的空间</span></div><div class="line">        <span class="built_in">printf</span>(<span class="string">"%c   "</span>,b.sex);</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"%04dY %02dM %02dD  "</span>,b.birthday.year,b.birthday.month,b.birthday.day);</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"%5.1f %5.1f %5.1f"</span>,b.BWH[<span class="number">0</span>],b.BWH[<span class="number">1</span>],b.BWH[<span class="number">2</span>]);</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"\n"</span>);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    fclose(fpr);</div><div class="line">    </div><div class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<hr>
+<p>#<a name="f_errno">错误码判断与操作<br>有时候在执行流的读操作时，发现返回为NULL或者EOF，这时需要判断是到了流(文件)的结束位置了？还是出现错误了？这就涉及到如下函数：   </a></p>
+<blockquote>
+<p>int feof(FILE *stream);<br>int ferror(FILE *stream);<br>void clearerr(FILE *stream);</p>
+</blockquote>
+<p><code>feof()</code>判断文件是否处于文件结束位置，如文件结束，则返回值为1，否则为0。<br><code>ferror(文件指针)</code>检查文件在用各种输入输出函数进行读写时是否出错。 如ferror返回值为0表示未出错，否则表示有错。 </p>
+<p><code>clearerr()</code>用于清除出错标志和文件结束标志，使它们为初始值0。</p>
+<hr>
+<p>#<a name="file_site">文件位置指针移动<br>在读流(文件)时，已经读到文件结束的位置时，或者想以当前位置为准跳过指定长度的数据继续往下读，则需要移动文件位置指针。一般常用的涉及到以下三个函数：</a></p>
+<blockquote>
+<p>long ftell(FILE *stream);<br>int fseek(FILE *stream, long offset, int whence);<br>void rewind(FILE *stream);</p>
+</blockquote>
+<p><code>ftell()</code>用于获知当前文件指针的位置。<br><code>fseek()</code>用于改变文件指针的位置，第二个参数<code>offset</code>是指参照<code>whence</code>后指针进一步的偏移量。第三个参数<code>whence</code>有三种赋值及其含义分别为：<br>    <strong>SEEK_SET</strong>: 文件指针回到文件初始位置。<br>    <strong>SEEK_CUR</strong>: 文件指针不变，仍处于当前位置。一般配合<code>offset</code>移动文件指针到当前位置前后若干字节。<br>    <strong>SEEK_END</strong>: 文件指针跳到文件结束的位置。<br>函数正常执行时则返回0，否则返回-1且会把错误码设置在<code>errno</code>中。<br><code>rewind()</code>相当于<code>fseek(file, 0, SEEK_SET)</code>。即直接跳转到文件开头位置。</p>
+<p>示例代码如下：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> **argv)</span> </span>&#123;</div><div class="line">    <span class="keyword">char</span> *filePath = <span class="string">"/Users/sodino/workspace/xcode/CString/CString/test.txt"</span>;</div><div class="line"></div><div class="line">    FILE* file = fopen(filePath, <span class="string">"w+"</span>);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"integer descriptor:%d \n"</span>, fileno(file));</div><div class="line">    <span class="keyword">if</span> (file == <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"fopen fail:%s "</span>, filePath);</div><div class="line">        perror(<span class="string">""</span>);</div><div class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="built_in">fprintf</span>(file, <span class="string">"%s %d"</span>, <span class="string">"My_Age_is"</span>, <span class="number">19</span>); <span class="comment">// '_'为空格的话则无法正常读出</span></div><div class="line">    fseek(file, <span class="number">0</span>, SEEK_SET); <span class="comment">// 跳转到文件开头才能正常读取内容</span></div><div class="line">    <span class="keyword">char</span> arrRead[<span class="number">100</span>];</div><div class="line">    <span class="keyword">int</span> age;</div><div class="line">    <span class="built_in">fscanf</span>(file, <span class="string">"%s %d"</span>, arrRead, &amp;age);</div><div class="line">    <span class="comment">// 打印出：read: My_Age_is 19</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"read: %s %d \n"</span>, arrRead, age);</div><div class="line"></div><div class="line">    fclose(file);</div><div class="line">    </div><div class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<p>#<a name="f_close">关闭文件</a></p>
+<blockquote>
+<p>int fclose(FILE *stream);<br>关闭文件(流)，如果流中仍有缓存内容未进行写操作，则会执行完写操作后再关闭。<br>关闭文件(流)之后，任何函数再有对<code>stream</code>进行操作的行为结果则都是未知的。所以请及时对<code>stream</code>置NULL。</p>
+</blockquote>
+<hr>
+<p>#<a name="f_remove">删除文件</a></p>
+<blockquote>
+<p>int remove(const char *pathname);   <strong>Thread-Safe</strong><br><code>remove()</code>函数可以从文件系统中删除指定路径下的文件(夹)，内部实现中使用<code>unlink()</code>删除文件，使用<code>rmdir()</code>删除文件夹。</p>
+</blockquote>
+<p>如果指定的路径是其所代表的文件(夹)的最后一个链接(参照<a href="http://sodino.com/2015/03/06/linux-hard-and-symoblic-link/">硬链接和软链接</a>)且没有被其它进程后引用，则该文件(夹)会被立即删除，其所占用的空间也可以被重新利用。但如果有其它进程仍在引用着该文件(夹)，则删除和空间的回收操作要等到其它进程释放了当前文件(夹)的引用之后才会继续进行。</p>
+<p>如果指定的路径是一个软链接文件，则只会删除该软链接文件，而非其指向的原始文件。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/C-C/">C/C++</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/C-C/">C/C++</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://sodino.com/2015/03/07/c-file-io/" data-title="【C/C++】文件创建、打开、读、写、复制、关闭、删除等操作汇总 | Sodino&#39;s Blog" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/03/09/c-directory-io/" title="【C/C++】文件夹的打开、遍历、删除、创建、关闭操作汇总">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  【C/C++】文件夹的打开、遍历、删除、创建、关闭操作汇总</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/03/06/c-file-detail-info/"  title="【C/C++】判断File是文件(夹)、获取文件大小、uid,gid分组、硬链接数">
+ <strong>NEXT:</strong><br/> 
+ <span>【C/C++】判断File是文件(夹)、获取文件大小、uid,gid分组、硬链接数
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	<div class="social-list" class="clearfix">
+		
+		<a href="http://weibo.com/3822886122" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/sodino" target="_blank" title="github"></a>
+		
+		
+		
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/android/" title="Android">Android<sup>13</sup></a></li>
+		
+			<li><a href="/categories/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/categories/C-C/" title="C/C++">C/C++<sup>26</sup></a></li>
+		
+			<li><a href="/categories/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/categories/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/categories/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/categories/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/categories/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Android/" title="Android">Android<sup>18</sup></a></li>
+		
+			<li><a href="/tags/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>25</sup></a></li>
+		
+			<li><a href="/tags/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/tags/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/tags/NDK/" title="NDK">NDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/tags/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/tags/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/tags/object-Object/" title="[object Object]">[object Object]<sup>1</sup></a></li>
+		
+			<li><a href="/tags/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+			<li><a href="/tags/markdown/" title="markdown">markdown<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://blog.csdn.net/sodino" target="_blank" title="Sodino Csdn">CSDN's Blog</a></li>
+    </ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Android/" style="font-size: 18.75px;">Android</a> <a href="/tags/AndroidStudio/" style="font-size: 13.75px;">AndroidStudio</a> <a href="/tags/C-C/" style="font-size: 20px;">C/C++</a> <a href="/tags/Eclipse/" style="font-size: 10px;">Eclipse</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/JDK/" style="font-size: 10px;">JDK</a> <a href="/tags/JNI/" style="font-size: 11.25px;">JNI</a> <a href="/tags/Java/" style="font-size: 10px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/LBS/" style="font-size: 10px;">LBS</a> <a href="/tags/Linux/" style="font-size: 16.25px;">Linux</a> <a href="/tags/Mac/" style="font-size: 11.25px;">Mac</a> <a href="/tags/NDK/" style="font-size: 10px;">NDK</a> <a href="/tags/Node-js/" style="font-size: 17.5px;">Node.js</a> <a href="/tags/Proguard/" style="font-size: 11.25px;">Proguard</a> <a href="/tags/React-Native/" style="font-size: 10px;">React-Native</a> <a href="/tags/object-Object/" style="font-size: 10px;">[object Object]</a> <a href="/tags/blog/" style="font-size: 12.5px;">blog</a> <a href="/tags/markdown/" style="font-size: 10px;">markdown</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://sodino.com" target="_blank" title="Sodino">Sodino</a>
+		
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"sodino"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+<script>
+    
+        var _bdImg = '4';
+    
+    window._bd_share_config={
+        "common":{
+            "bdSnsKey":{
+
+            },
+            "bdText":"",
+            "bdMini":"2",
+            "bdMiniList":[
+                "qzone",
+                "tsina",
+                "weixin",
+                "renren",
+                "tqq",
+                "tieba",
+                "douban",
+                "sqq",
+                "diandian",
+                "huaban",
+                "youdao",
+                "mail",
+                "ty",
+                "fbook",
+                "twi",
+                "linkedin",
+                "copy",
+                "print"
+            ],
+            "bdPic":"",
+            "bdStyle":"0",
+            "bdSize":"16"
+        },
+        "slide":{
+            "type":"slide",
+            "bdImg":_bdImg,
+            "bdPos":"right",
+            "bdTop":"350"
+        },
+        "image":{
+            "viewList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ],
+            "viewText":"分享：",
+            "viewSize":"16"
+        },
+        "selectShare":{
+            "bdContainerClass":null,
+            "bdSelectMiniList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ]
+        }
+    };
+    with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'null', 'null');  
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+</html>
+

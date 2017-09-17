@@ -1,0 +1,585 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="baidu_union_verify" content="d1952c66cf48912e21c18c7c581f382a">
+  <meta name="360-site-verification" content="67fbcc5a67f4c65c057315b28fa0b2c8" />
+<meta name="google-site-verification" content="2GzxQ0VtXwTSUdmGm6DzcmhTzM_I9QmzCb_pzpMzD88" />
+  
+    <title>【C/C++】多进程：信号量的监听与处理函数 | Sodino&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Sodino">
+    
+    <meta name="description" content="文章结构：
+
+wait()的阻塞问题
+signal()函数讲解
+示例代码
+
+
+#wait()的阻塞问题
+　　之前的多进程：父进程监听子进程状态 wait()的使用文章中，父进程为了获取子进程的SIGSTOP、SIGTERM等信号时，由于调用了wait而导致主进程一直阻塞。在实际的开发中，主进程在等待">
+    
+    
+    
+    
+    <link rel="alternate" href="atom.xml" title="Sodino&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='391982416296a0d54221f59fe35250d4';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+     
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Sodino&#39;s Blog">Sodino&#39;s Blog</a></h1>
+				<a class="blog-motto">见多食广 与食巨近</a>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于我</a></li>
+					
+					<li>
+					
+                                            <form class="search" action=http://zhannei.baidu.com/cse/search target="_blank">
+                                            <label>Search</label>
+                                        <input name="s" type="hidden" value= null ><input type="text" name="q" size="30" placeholder="搜索"><br>
+					
+					</li>
+				</ul>
+                            </nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/04/19/c-signal/" title="【C/C++】多进程：信号量的监听与处理函数" itemprop="url">【C/C++】多进程：信号量的监听与处理函数</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://sodino.com" title="Sodino">Sodino</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2015-04-19T14:38:58.000Z" itemprop="datePublished">2015 04 19</time>
+    更新日期:<time datetime="2015-04-19T16:22:23.000Z" itemprop="dateModified">2015 04 20</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+		</div>
+		
+		<p>文章结构：</p>
+<ul>
+<li><a href="#mess">wait()的阻塞问题</a></li>
+<li><a href="#func">signal()函数讲解</a></li>
+<li><a href="#demo">示例代码</a></li>
+</ul>
+<hr>
+<p>#<a name="mess">wait()的阻塞问题</a></p>
+<p>　　之前的<a href="http://sodino.com/2015/04/14/c-wait/">多进程：父进程监听子进程状态 wait()的使用</a>文章中，父进程为了获取子进程的SIGSTOP、SIGTERM等信号时，由于调用了<code>wait</code>而导致主进程一直阻塞。在实际的开发中，主进程在等待子进程状态变化时还会有其它的事情要去执行，所以需要一种异步回调机制，让主进程可以在执行其它任务的时候，又可以监听到子进程的进程状态变化时及时处理。</p>
+<p>　　<code>signal()</code>函数就可以解决以上的问题。</p>
+<hr>
+<p>#<a name="func">signal()函数讲解</a></p>
+<p>　　<code>signal()</code>函数原型如下：</p>
+<pre><code>#include &lt;signal.h&gt;
+
+typedef void (*sighandler_t)(int);
+sighandler_t signal(int signum, sighandler_t handler);
+</code></pre><p>　　<code>typedef</code>定义了一类函数名叫<code>sighandler_t</code>，该函数返回类型为<code>void</code>，且只有一个<code>int</code>型参数。</p>
+<p>　　<code>signal()</code>函数第一个参数<code>signum</code>指所要监听的进程状态的变量信号，所有可监听的信号量的定义可以从<code>sys/signal.h</code>头文件中去查阅。本文文章的demo中要处理的信号量有：</p>
+<blockquote>
+<p>SIGSTOP: 发送给父进程的，表示子进程被外部命令所暂停。命令可以是<code>kill</code>，也可以在<code>top</code>中操作。</p>
+<p>SIGCHLD: 发送给父进程的，表示子进程被外部命令所暂停或已经执行完毕退出。这时需要父进程执行<code>wait</code>函数让子进程从<code>僵尸进程</code>状态彻底被系统回收。</p>
+<p>SIGWINCH: 程序窗口大小发生变化。在终端命令行下运行可执行文件时鼠标拖动一下窗口即可获得此信号。</p>
+</blockquote>
+<p>　　<code>signal()</code>函数第二个参数是指定<code>signum</code>的处理函数。该函数的唯一参数将会被赋值为被监听到的信号量。在此函数中可以调用<code>wait</code>或其它处理逻辑。也可以赋值为系统的<code>SIG_IGN</code>或<code>SIG_DFL</code>函数，分别表示忽略和默认处理方式。但是信号量<code>SIGKILL</code>及<code>SIGSTOP</code>的处理方式是不能被忽略处理。</p>
+<p>　　当自定义了信号量处理函数后，所监听的信号被捕获，则该信号会被设置为阻塞<code>blocked</code>，然后再执行处理函数中的逻辑，处理函数执行完毕后，信号量恢复为未阻塞状态<code>unblocked</code>。</p>
+<p>　　<code>signal()</code>函数正常执行，返回值为<code>signum</code>的原有处理函数；否则出错返回<code>SIG_ERR</code>，并且可以通过<code>errno</code>来查看错误原因。</p>
+<p>　　<code>signal()</code>函数在不同的Unix或Linux版本间存在较大的差异，所以一般推荐用<code>sigaction()</code>函数来替换。本文不涉及<code>sigaction()</code>的内容。</p>
+<hr>
+<p>#<a name="demo">示例代码</a></p>
+<p>　　接下来演示<code>signal()</code>函数的使用。代码示例中依然用到了对标准输出流的重定向<a href="http://sodino.com/2015/03/07/c-file-io/">freopen</a>，将子进程的日志输出到<code>child_signal.txt</code>，父进程日志输出到<code>main_signal.txt</code>中去。</p>
+<p><code>signal.c</code></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div><div class="line">80</div><div class="line">81</div><div class="line">82</div><div class="line">83</div><div class="line">84</div><div class="line">85</div><div class="line">86</div><div class="line">87</div><div class="line">88</div><div class="line">89</div><div class="line">90</div><div class="line">91</div><div class="line">92</div><div class="line">93</div><div class="line">94</div><div class="line">95</div><div class="line">96</div><div class="line">97</div><div class="line">98</div><div class="line">99</div><div class="line">100</div><div class="line">101</div><div class="line">102</div><div class="line">103</div><div class="line">104</div><div class="line">105</div><div class="line">106</div><div class="line">107</div><div class="line">108</div><div class="line">109</div><div class="line">110</div><div class="line">111</div><div class="line">112</div><div class="line">113</div><div class="line">114</div><div class="line">115</div><div class="line">116</div><div class="line">117</div><div class="line">118</div><div class="line">119</div><div class="line">120</div><div class="line">121</div><div class="line">122</div><div class="line">123</div><div class="line">124</div><div class="line">125</div><div class="line">126</div><div class="line">127</div><div class="line">128</div><div class="line">129</div><div class="line">130</div><div class="line">131</div><div class="line">132</div><div class="line">133</div><div class="line">134</div><div class="line">135</div><div class="line">136</div><div class="line">137</div><div class="line">138</div><div class="line">139</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;signal.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;sys/wait.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;unistd.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;errno.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;time.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></div><div class="line"></div><div class="line"></div><div class="line"><span class="meta">#<span class="meta-keyword">ifndef</span> getSigName</span></div><div class="line"><span class="meta">#<span class="meta-keyword">define</span> getSigName(sig) (((sig) == SIGCHLD)?<span class="meta-string">"SIGCHLD"</span>:(((sig) == SIGCONT)?<span class="meta-string">"SIGCONT"</span>:(((sig) == SIGTERM)?<span class="meta-string">"SIGTERM"</span>:(((sig) == SIGWINCH)?<span class="meta-string">"SIGWINCH"</span>:<span class="meta-string">""</span>))))</span></div><div class="line"><span class="meta">#<span class="meta-keyword">endif</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">printTime</span><span class="params">()</span> </span>&#123;</div><div class="line">    <span class="keyword">time_t</span> calendar_time = time(<span class="literal">NULL</span>);</div><div class="line">    <span class="class"><span class="keyword">struct</span> <span class="title">tm</span> * <span class="title">tm_local</span> = <span class="title">localtime</span>(&amp;<span class="title">calendar_time</span>);</span></div><div class="line">    <span class="keyword">char</span> <span class="keyword">str_f_t</span> [<span class="number">50</span>];</div><div class="line">    strftime(<span class="keyword">str_f_t</span>, <span class="keyword">sizeof</span>(<span class="keyword">str_f_t</span>), <span class="string">"%G-%m-%d %H:%M:%S"</span>, tm_local);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%s "</span>, <span class="keyword">str_f_t</span>);</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">handleSignal</span><span class="params">(<span class="keyword">int</span> sig)</span> </span>&#123;</div><div class="line">    printTime();</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"PID=%d handleSignal %s=%d\n"</span>, getpid(), getSigName(sig), sig);</div><div class="line">    <span class="keyword">if</span> (sig == SIGCHLD || sig == SIGTERM) &#123;</div><div class="line">        <span class="comment">// 子进程被暂停或退出了(包括按逻辑执行结束及被kill)</span></div><div class="line">        <span class="keyword">int</span> status = <span class="number">0</span>;</div><div class="line">        <span class="keyword">int</span> childPid = waitpid(<span class="number">-1</span>, &amp;status, WUNTRACED|WCONTINUED);</div><div class="line">        <span class="keyword">if</span> (childPid == <span class="number">-1</span>) &#123;</div><div class="line">            printTime();</div><div class="line">            <span class="built_in">printf</span>(<span class="string">"Parent w=-1, error=%s \n"</span>, strerror(errno));</div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">int</span> ifExited, ifSignaled, ifStopped, ifContinued;</div><div class="line">            </div><div class="line">            ifExited = WIFEXITED(status);</div><div class="line">            ifSignaled = WIFSIGNALED(status);</div><div class="line">            ifStopped = WIFSTOPPED(status);</div><div class="line">            ifContinued = WIFCONTINUED(status);</div><div class="line">            </div><div class="line">            printTime();</div><div class="line">            <span class="built_in">printf</span>(<span class="string">"pid=%ld child=%d exitCode=%d status=%d ifExited=%d ifSignaled=%d ifStopped=%d ifContinued=%d \n"</span>,</div><div class="line">                   (<span class="keyword">long</span>)getpid(), childPid, status, _WSTATUS(childPid), ifExited, ifSignaled, ifStopped, ifContinued);</div><div class="line">            </div><div class="line">            printTime();</div><div class="line">            <span class="keyword">if</span> (ifExited) &#123;</div><div class="line">                <span class="built_in">printf</span>(<span class="string">"PID=%ld exited, status=%d\n"</span>, (<span class="keyword">long</span>)childPid, WEXITSTATUS(status));</div><div class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ifSignaled) &#123;</div><div class="line">                <span class="built_in">printf</span>(<span class="string">"PID=%ld killed by signal %d\n"</span>, (<span class="keyword">long</span>)childPid, WTERMSIG(status));</div><div class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ifStopped) &#123;</div><div class="line">                <span class="built_in">printf</span>(<span class="string">"PID=%ld stopped by signal %d\n"</span>, (<span class="keyword">long</span>)childPid, WSTOPSIG(status));</div><div class="line">            &#125; <span class="keyword">else</span> <span class="keyword">if</span> (ifContinued) &#123;</div><div class="line">                <span class="built_in">printf</span>(<span class="string">"PID=%ld continued\n"</span>, (<span class="keyword">long</span>)childPid);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (sig == SIGCONT) &#123;</div><div class="line">        <span class="comment">// sigcont在本人的mac上调用wait是无效的</span></div><div class="line">        <span class="comment">// do nothing</span></div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (sig == SIGWINCH) &#123;</div><div class="line">        <span class="comment">// do nothing</span></div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        printTime();</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"sig=%d is not valid.\n"</span>, sig);</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">static</span> <span class="keyword">void</span> <span class="title">mainProcessDoSomething</span><span class="params">(FILE* f)</span> </span>&#123;</div><div class="line">    <span class="keyword">int</span> count = <span class="number">0</span>;</div><div class="line">    <span class="keyword">while</span>(<span class="number">1</span>) &#123;</div><div class="line">        sleep(<span class="number">3</span>);</div><div class="line">        <span class="keyword">if</span> (f != <span class="literal">NULL</span>)&#123;</div><div class="line">            fflush(f);</div><div class="line">        &#125;</div><div class="line">        <span class="keyword">if</span> (count ++ &gt; <span class="number">50</span>) &#123;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="keyword">int</span> main<span class="comment">/*11*/</span> (<span class="keyword">int</span> argc, <span class="keyword">char</span> ** argv) &#123;</div><div class="line">    </div><div class="line">    <span class="comment">// SIGWINCH：应用程序窗口发生变化</span></div><div class="line">    signal(SIGWINCH, &amp;handleSignal);</div><div class="line">    </div><div class="line">    <span class="comment">// 子进程被暂停运行</span></div><div class="line">    signal(SIGSTOP, &amp;handleSignal);</div><div class="line">    <span class="comment">// 子进程被恢复运行(Mac上无效..)</span></div><div class="line">    signal(SIGCONT, &amp;handleSignal);</div><div class="line">    <span class="comment">// SIGCHLD：子进程被暂停或退出了(包括按逻辑执行结束及被kill)</span></div><div class="line">    signal(SIGCHLD, &amp;handleSignal);</div><div class="line">    <span class="comment">// 不建议对SIGTERM进行设置</span></div><div class="line">    <span class="comment">// signal(SIGTERM, &amp;handleSignal);</span></div><div class="line">    </div><div class="line">    <span class="keyword">pid_t</span> pId = fork();</div><div class="line">    <span class="keyword">if</span> (pId == <span class="number">-1</span>) &#123;</div><div class="line">        perror(<span class="string">"fork error"</span>);</div><div class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);</div><div class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (pId == <span class="number">0</span>) &#123;</div><div class="line">        FILE* fChild = freopen(<span class="string">"/Users/sodino/workspace/xcode/Define/Define/child_signal.txt"</span>, <span class="string">"w"</span>, <span class="built_in">stdout</span>);</div><div class="line">        <span class="keyword">int</span> myPid = getpid();</div><div class="line">        <span class="keyword">int</span> parentPid = getppid();</div><div class="line">        </div><div class="line">        printTime();</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"Child:SelfID=%d ParentID=%d \n"</span>, myPid, parentPid);</div><div class="line"></div><div class="line">        <span class="keyword">int</span> count = <span class="number">0</span>;</div><div class="line">        <span class="keyword">do</span>&#123;</div><div class="line">            count ++;</div><div class="line">            sleep(<span class="number">5</span>);</div><div class="line">            printTime();</div><div class="line">            <span class="built_in">printf</span>(<span class="string">"Child:count=%d \n"</span>, count);</div><div class="line">            fflush(fChild);</div><div class="line">            <span class="keyword">if</span> (count &gt;= <span class="number">20</span>) &#123;</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            &#125;</div><div class="line">        &#125;<span class="keyword">while</span> (<span class="number">1</span>);</div><div class="line">        printTime();</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"Child:SelfID=%d exit success.\n"</span>, myPid);</div><div class="line">        fflush(fChild);</div><div class="line">        fclose(fChild);</div><div class="line">        <span class="keyword">return</span> EXIT_SUCCESS;</div><div class="line">    &#125; <span class="keyword">else</span> &#123;</div><div class="line">        FILE * fMain = freopen(<span class="string">"/Users/sodino/workspace/xcode/Define/Define/main_signal.txt"</span>, <span class="string">"w"</span>, <span class="built_in">stdout</span>);</div><div class="line">        printTime();</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"Parent:SelfID=%d MyChildPID=%d \n"</span>, getpid(), pId);</div><div class="line">        fflush(fMain);</div><div class="line">        </div><div class="line">        <span class="comment">// 继续往下执行其它任务，而不像原逻辑 会被wait()所阻塞</span></div><div class="line">        mainProcessDoSomething(fMain);</div><div class="line">        </div><div class="line">        printTime();</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"Parent:SelfID=%d exit success.\n"</span>, getpid());</div><div class="line">        </div><div class="line">        fflush(fMain);</div><div class="line">        fclose(fMain);</div><div class="line"></div><div class="line">        <span class="keyword">return</span> EXIT_SUCCESS;</div><div class="line">    &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>　　以上代码中，在<code>main()</code>函数一开始，就对<code>SIGWINCH</code>、<code>SIGSTOP</code>、<code>SIGCHLD</code>进行监听，统一注册其处理函数为<code>handleSignal(int)</code>。然后执行<code>fork()</code>生成子进程。</p>
+<p>　　<code>handleSignal(int)</code>函数中会对监听到的信号量做出打印及输出，如果是<code>SIGSTOP</code>、<code>SIGCHLD</code>的话则会执行<code>wait</code>以获取子进程状态。</p>
+<p>　　在主进程中，以<code>mainProcessDoSomething()</code>函数来表示父进程的其它工作任务，不被<code>wait</code>所阻塞。</p>
+<p>　　编译<code>signal.c</code>文件，后在命令行终端下执行<code>./a.out</code>，然后鼠标拖动改动一个命令行终端窗口的大小，可见<code>child_signal.txt</code>及<code>main_signal.txt</code>都输出了<code>handleSignal SIGWINCH=28</code>的日志。</p>
+<p>　　然后<code>kill -sigstop child_pid</code>，再恢复<code>kill -sigcont child_pid</code>，然后一直等待子进程运行完毕，可完整看到如下两份日志。
+　　</p>
+<p>child_signal.txt</p>
+<pre><code>2015-04-19 22:31:31 Child:SelfID=4352 ParentID=4351 
+2015-04-19 22:31:36 Child:count=1 
+2015-04-19 22:31:39 PID=4352 handleSignal SIGWINCH=28
+2015-04-19 22:31:39 Child:count=2 
+2015-04-19 22:31:39 PID=4352 handleSignal SIGWINCH=28
+2015-04-19 22:31:39 Child:count=3 
+2015-04-19 22:31:39 PID=4352 handleSignal SIGWINCH=28
+2015-04-19 22:31:39 Child:count=4 
+2015-04-19 22:31:54 Child:count=5 
+2015-04-19 22:31:59 Child:count=6  // 这里，对子进程执行了kill -sigstop命令
+2015-04-19 22:32:21 PID=4352 handleSignal SIGCONT=19
+2015-04-19 22:32:21 Child:count=7 
+2015-04-19 22:32:26 Child:count=8
+... ...
+... ...
+2015-04-19 22:33:16 Child:count=20 
+2015-04-19 22:33:16 Child:SelfID=4352 exit success.
+</code></pre><p>main_signal.txt</p>
+<pre><code>2015-04-19 22:31:31 Parent:SelfID=4351 MyChildPID=4352 
+2015-04-19 22:31:39 PID=4351 handleSignal SIGWINCH=28
+2015-04-19 22:31:39 PID=4351 handleSignal SIGWINCH=28
+2015-04-19 22:31:39 PID=4351 handleSignal SIGWINCH=28
+2015-04-19 22:32:04 PID=4351 handleSignal SIGCHLD=20
+2015-04-19 22:32:04 pid=4351 child=4352 exitCode=4479 status=0 ifExited=0 ifSignaled=0 ifStopped=1 ifContinued=0 
+2015-04-19 22:32:04 PID=4352 stopped by signal 17
+2015-04-19 22:33:16 PID=4351 handleSignal SIGCHLD=20
+2015-04-19 22:33:16 pid=4351 child=4352 exitCode=0 status=0 ifExited=1 ifSignaled=0 ifStopped=0 ifContinued=0 
+2015-04-19 22:33:16 PID=4352 exited, status=0  // 父进程监听到子进程执行完毕
+2015-04-19 22:33:55 Parent:SelfID=4351 exit success. // 父进程WHILE循环执行完毕
+</code></pre><p>　　可以发现发送给子进程的<code>SIGSTOP</code>和运行退出对父进程来说都是<code>SIGCHLD</code>。而子进程可以接收到父进程<code>wait</code>方法中不支持的<code>SIGCONT</code>信号。</p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/C-C/">C/C++</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/C-C/">C/C++</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://sodino.com/2015/04/19/c-signal/" data-title="【C/C++】多进程：信号量的监听与处理函数 | Sodino&#39;s Blog" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/05/10/jni-functions-manual/" title="【JNI】jni.h函数详解手册--The Java(TM) Native Interface">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  【JNI】jni.h函数详解手册--The Java(TM) Native Interface</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/04/18/c-zombie-process/"  title="【C/C++】多进程：僵尸进程">
+ <strong>NEXT:</strong><br/> 
+ <span>【C/C++】多进程：僵尸进程
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	<div class="social-list" class="clearfix">
+		
+		<a href="http://weibo.com/3822886122" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/sodino" target="_blank" title="github"></a>
+		
+		
+		
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/android/" title="Android">Android<sup>13</sup></a></li>
+		
+			<li><a href="/categories/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/categories/C-C/" title="C/C++">C/C++<sup>26</sup></a></li>
+		
+			<li><a href="/categories/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/categories/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/categories/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/categories/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/categories/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Android/" title="Android">Android<sup>18</sup></a></li>
+		
+			<li><a href="/tags/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>25</sup></a></li>
+		
+			<li><a href="/tags/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/tags/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/tags/NDK/" title="NDK">NDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/tags/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/tags/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/tags/object-Object/" title="[object Object]">[object Object]<sup>1</sup></a></li>
+		
+			<li><a href="/tags/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+			<li><a href="/tags/markdown/" title="markdown">markdown<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://blog.csdn.net/sodino" target="_blank" title="Sodino Csdn">CSDN's Blog</a></li>
+    </ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Android/" style="font-size: 18.75px;">Android</a> <a href="/tags/AndroidStudio/" style="font-size: 13.75px;">AndroidStudio</a> <a href="/tags/C-C/" style="font-size: 20px;">C/C++</a> <a href="/tags/Eclipse/" style="font-size: 10px;">Eclipse</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/JDK/" style="font-size: 10px;">JDK</a> <a href="/tags/JNI/" style="font-size: 11.25px;">JNI</a> <a href="/tags/Java/" style="font-size: 10px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/LBS/" style="font-size: 10px;">LBS</a> <a href="/tags/Linux/" style="font-size: 16.25px;">Linux</a> <a href="/tags/Mac/" style="font-size: 11.25px;">Mac</a> <a href="/tags/NDK/" style="font-size: 10px;">NDK</a> <a href="/tags/Node-js/" style="font-size: 17.5px;">Node.js</a> <a href="/tags/Proguard/" style="font-size: 11.25px;">Proguard</a> <a href="/tags/React-Native/" style="font-size: 10px;">React-Native</a> <a href="/tags/object-Object/" style="font-size: 10px;">[object Object]</a> <a href="/tags/blog/" style="font-size: 12.5px;">blog</a> <a href="/tags/markdown/" style="font-size: 10px;">markdown</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://sodino.com" target="_blank" title="Sodino">Sodino</a>
+		
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"sodino"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+<script>
+    
+        var _bdImg = '4';
+    
+    window._bd_share_config={
+        "common":{
+            "bdSnsKey":{
+
+            },
+            "bdText":"",
+            "bdMini":"2",
+            "bdMiniList":[
+                "qzone",
+                "tsina",
+                "weixin",
+                "renren",
+                "tqq",
+                "tieba",
+                "douban",
+                "sqq",
+                "diandian",
+                "huaban",
+                "youdao",
+                "mail",
+                "ty",
+                "fbook",
+                "twi",
+                "linkedin",
+                "copy",
+                "print"
+            ],
+            "bdPic":"",
+            "bdStyle":"0",
+            "bdSize":"16"
+        },
+        "slide":{
+            "type":"slide",
+            "bdImg":_bdImg,
+            "bdPos":"right",
+            "bdTop":"350"
+        },
+        "image":{
+            "viewList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ],
+            "viewText":"分享：",
+            "viewSize":"16"
+        },
+        "selectShare":{
+            "bdContainerClass":null,
+            "bdSelectMiniList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ]
+        }
+    };
+    with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'null', 'null');  
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+</html>
+

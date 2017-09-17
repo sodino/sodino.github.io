@@ -1,0 +1,533 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="baidu_union_verify" content="d1952c66cf48912e21c18c7c581f382a">
+  <meta name="360-site-verification" content="67fbcc5a67f4c65c057315b28fa0b2c8" />
+<meta name="google-site-verification" content="2GzxQ0VtXwTSUdmGm6DzcmhTzM_I9QmzCb_pzpMzD88" />
+  
+    <title>【C/C++】printf()函数用法汇总 | Sodino&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Sodino">
+    
+    <meta name="description" content="汇总一下printf()的相关用法，并给出示例。详情参见：printf(3)使用printf()必须include &amp;lt;stdio.h&amp;gt;。printf()的功能主要是按格式化要求在终端控制台中打印出相应的字符。其返回值int表明当前执行的printf()总共打印出多少字符。当printf执">
+    
+    
+    
+    
+    <link rel="alternate" href="atom.xml" title="Sodino&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='391982416296a0d54221f59fe35250d4';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+     
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Sodino&#39;s Blog">Sodino&#39;s Blog</a></h1>
+				<a class="blog-motto">见多食广 与食巨近</a>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于我</a></li>
+					
+					<li>
+					
+                                            <form class="search" action=http://zhannei.baidu.com/cse/search target="_blank">
+                                            <label>Search</label>
+                                        <input name="s" type="hidden" value= null ><input type="text" name="q" size="30" placeholder="搜索"><br>
+					
+					</li>
+				</ul>
+                            </nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/02/01/c-printf-desc/" title="【C/C++】printf()函数用法汇总" itemprop="url">【C/C++】printf()函数用法汇总</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://sodino.com" title="Sodino">Sodino</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2015-02-01T03:26:22.000Z" itemprop="datePublished">2015 02 01</time>
+    更新日期:<time datetime="2015-02-01T15:04:50.000Z" itemprop="dateModified">2015 02 01</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+		</div>
+		
+		<p>汇总一下printf()的相关用法，并给出示例。<br>详情参见：<a href="http://man7.org/linux/man-pages/man3/printf.3.html" target="_blank" rel="external">printf(3)</a><br>使用printf()必须<code>include &lt;stdio.h&gt;</code>。<br>printf()的功能主要是按格式化要求在终端控制台中打印出相应的字符。其返回值int表明当前执行的printf()总共打印出多少字符。当printf执行出错时，返回的结果是个负数。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// c code</span></div><div class="line"><span class="keyword">int</span> count = <span class="built_in">printf</span>(<span class="string">"Hello world."</span>);</div><div class="line"><span class="built_in">printf</span>(<span class="string">"\ncount=%d\n"</span>, count);</div><div class="line"> </div><div class="line"><span class="comment">// output</span></div><div class="line">Hello world.</div><div class="line">count=<span class="number">12</span></div></pre></td></tr></table></figure></p>
+<p>#printf()操作字符串的可以有：</p>
+<ol>
+<li>字符串的左、右对齐</li>
+<li>字符串打印长度的设置</li>
+<li>字符串填充符的前后设定</li>
+<li>‘char’与数字的相互转换</li>
+</ol>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">    <span class="comment">// 正常的打印字符串</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%s|end\n"</span>, <span class="string">"test123"</span>);</div><div class="line">    <span class="comment">// 设定打印的%s字符串长度最小值为10，长度不足10时默认在字符串的左边填充' '空格。</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%10s|end\n"</span>, <span class="string">"test123"</span>);</div><div class="line">    <span class="comment">// 设定打印的%s字符串长度最小值为10，长度不足10时默认在字符串的右边填充' '空格。</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%-10s|end\n"</span>, <span class="string">"test123"</span>);</div><div class="line">    <span class="comment">// 设定打印的%s字符串长度最小值为10，长度不足10时默认在字符串的左边填充'0'空格。</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%010s|end\n"</span>, <span class="string">"test123"</span>);</div><div class="line">    <span class="comment">// 打印出ASCII码表中数字所代表的字符</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%c%c%c%c%c %d %d %d %d %d.\n"</span>, <span class="number">72</span>, <span class="number">101</span>, <span class="number">108</span>, <span class="number">108</span>, <span class="number">111</span>, <span class="string">'H'</span>, <span class="string">'e'</span>, <span class="string">'l'</span>, <span class="string">'l'</span>, <span class="string">'o'</span>);</div><div class="line"><span class="comment">// output</span></div><div class="line">test123|end</div><div class="line">   test123|end</div><div class="line">test123   |end</div><div class="line"><span class="number">000</span>test123|end</div><div class="line">Hello <span class="number">72</span> <span class="number">101</span> <span class="number">108</span> <span class="number">108</span> <span class="number">111.</span></div></pre></td></tr></table></figure>
+<p>以上的示例中，不存在<code>%-010s</code>这样’-‘与’0’共存的设置，当两者都出现时，编译器会自动忽略掉’0’而只让’-‘生效。</p>
+<p>#设置字符串最小长度的另一种方法<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// d表示普通的十进制数字。打印出宽度为5的数字21。即左边填充3个空格。</span></div><div class="line"><span class="comment">// %*代表第后续的第1个参数值是宽度设定的最小值</span></div><div class="line"><span class="built_in">printf</span>(<span class="string">"%*d\n"</span>, <span class="number">5</span>, <span class="number">21</span>);</div><div class="line"><span class="comment">// 同上。 ‘%’由‘%m$’代替，‘*’由'*n$'代替</span></div><div class="line"><span class="built_in">printf</span>(<span class="string">"%2$*1$d\n"</span>, <span class="number">5</span>, <span class="number">21</span>); </div><div class="line"><span class="comment">// 同上。 ‘%’由‘%m$’代替，‘*’由'*n$'代替</span></div><div class="line"><span class="built_in">printf</span>(<span class="string">"%1$*2$d\n"</span>, <span class="number">21</span>, <span class="number">5</span>); </div><div class="line"></div><div class="line"><span class="comment">// output</span></div><div class="line"> <span class="number">21</span></div><div class="line"> <span class="number">21</span></div><div class="line"> <span class="number">21</span></div></pre></td></tr></table></figure></p>
+<p>#操作数字的功能有：</p>
+<ol>
+<li><p>设定数字的输出进制表达式<br> <em>o:八进制</em><br> <em>d:十进制</em><br> <em>u:无符号数的十进制</em><br> <em>x:十六进制(字母部分大写)</em><br> <em>X:十六进制(字母部分小写))</em></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">    <span class="built_in">printf</span>(<span class="string">"%o %d %u %d %x %X\n"</span>, <span class="number">123</span>, <span class="number">123</span>, <span class="number">-123</span>, <span class="number">-123</span>, <span class="number">123</span>, <span class="number">123</span>);</div><div class="line"><span class="comment">// output</span></div><div class="line"><span class="number">173</span> <span class="number">123</span> <span class="number">4294967173</span> <span class="number">-123</span> <span class="number">7b</span> <span class="number">7B</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>操作数字打印的长度及精度</p>
+</li>
+<li>操作数字打印的左、右对齐方式<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">    <span class="comment">// %f默认小数点后6位数</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%f|end\n"</span>, <span class="number">12.3</span>);</div><div class="line">    <span class="comment">// %f默认小数点后2位数</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%.2f|end\n"</span>, <span class="number">12.3</span>);</div><div class="line">    <span class="comment">// %f默认小数点后2位数，打印的字符串长度最小值为6，不足的个数用' '填充在左边</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%6.2f|end\n"</span>, <span class="number">12.3</span>);</div><div class="line">    <span class="comment">// %f默认小数点后2位数，打印的字符串长度最小值为6，不足的个数用' '填充在左边</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"% 6.2f|end\n"</span>, <span class="number">12.3</span>);</div><div class="line">    <span class="comment">// %f默认小数点后2位数，打印的字符串长度最小值为6，不足的个数用'0'填充在左边</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%06.2f|end\n"</span>, <span class="number">12.3</span>);</div><div class="line">    <span class="comment">// %f默认小数点后2位数，打印的字符串长度最小值为6，不足的个数用' '填充在右边</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%-6.2f|end\n"</span>, <span class="number">12.3</span>);</div><div class="line"><span class="comment">// output</span></div><div class="line"><span class="number">12.300000</span>|end</div><div class="line"><span class="number">12.30</span>|end</div><div class="line"> <span class="number">12.30</span>|end</div><div class="line"> <span class="number">12.30</span>|end</div><div class="line"><span class="number">012.30</span>|end</div><div class="line"><span class="number">12.30</span> |end</div></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>以上的示例中，不存在<code>%-06f</code>这样’-‘与’0’共存的设置，当两者都出现时，编译器会自动忽略掉’0’而只让’-‘生效。</p>
+<p>#打印科学计数法<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div></pre></td><td class="code"><pre><div class="line">    <span class="comment">// 默认小数点后6位，e小写</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%e \n"</span>, <span class="number">1.23f</span>);</div><div class="line">    <span class="comment">// 默认小数点后6位，E大写</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%E \n"</span>, <span class="number">1.23f</span>);</div><div class="line">    <span class="comment">// 设置小数点后2位，总长度最小值为10，不足默认用‘ ’空格在左边填充，E大写</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%10.2E|end \n"</span>, <span class="number">1.23f</span>);</div><div class="line">    <span class="comment">// 设置小数点后2位，总长度最小值为10，不足默认用‘ ’空格在左边填充，E大写</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"% 10.2E|end \n"</span>, <span class="number">1.23f</span>);</div><div class="line">    <span class="comment">// 设置小数点后2位，总长度最小值为10，不足默认用‘0’在左边填充，E大写</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%010.2E|end \n"</span>, <span class="number">1.23f</span>);</div><div class="line">    <span class="comment">// 设置小数点后2位，总长度最小值为10，不足默认用‘ ’空格在右边填充，E大写</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%-10.2E|end \n"</span>, <span class="number">1.23f</span>);</div><div class="line"><span class="comment">// output</span></div><div class="line"><span class="number">1.230000e+00</span> </div><div class="line"><span class="number">1.230000E+00</span> </div><div class="line">  <span class="number">1.23E+00</span>|end </div><div class="line">  <span class="number">1.23E+00</span>|end </div><div class="line"><span class="number">001.23E+00</span>|end </div><div class="line"><span class="number">1.23E+00</span>  |end</div></pre></td></tr></table></figure></p>
+<p>#%G与%f、%e的区别<br>%g 使用%e或%f中较短的一个<br>%G 使用%E或%f中较短的一个<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">    <span class="keyword">double</span> a=<span class="number">1000000000</span>;</div><div class="line">    <span class="keyword">double</span> b=<span class="number">123.456</span>;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%e\n"</span>,a);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%f\n"</span>,a);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"min.length is :%g\n"</span>,a);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%e\n"</span>,b);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%f\n"</span>,b);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"min.length is :%g\n"</span>,b);</div><div class="line"><span class="comment">// output</span></div><div class="line"><span class="number">1.000000e+09</span></div><div class="line"><span class="number">1000000000.000000</span></div><div class="line">min.length is :<span class="number">1e+09</span></div><div class="line"><span class="number">1.234560e+02</span></div><div class="line"><span class="number">123.456000</span></div><div class="line">min.length is :<span class="number">123.456</span></div></pre></td></tr></table></figure></p>
+<p>#打印一个指针指向的地址<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line">    <span class="keyword">char</span> * p = &amp;<span class="string">"test string"</span>;</div><div class="line">    <span class="comment">// 输出字符串，打印出指针的指向的地址信息</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%p|end\n"</span>, p);</div><div class="line"><span class="comment">// output</span></div><div class="line"><span class="number">0x100000f78</span>|end</div></pre></td></tr></table></figure></p>
+<p>#只输出一个<code>%</code><br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">printf</span>(<span class="string">"%%"</span>);</div><div class="line"><span class="comment">// output</span></div><div class="line">%</div></pre></td></tr></table></figure></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/C-C/">C/C++</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/C-C/">C/C++</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://sodino.com/2015/02/01/c-printf-desc/" data-title="【C/C++】printf()函数用法汇总 | Sodino&#39;s Blog" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/02/04/c-string-operate/" title="【C/C++】string操作方法汇总">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  【C/C++】string操作方法汇总</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/01/16/c-printf-error-msg/"  title="【C/C++】获取函数运行异常的错误信息(errno、perror()、strerror()) &amp; &#39;implicitly declaring library function&#39;">
+ <strong>NEXT:</strong><br/> 
+ <span>【C/C++】获取函数运行异常的错误信息(errno、perror()、strerror()) &amp; &#39;implicitly declaring library function&#39;
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	<div class="social-list" class="clearfix">
+		
+		<a href="http://weibo.com/3822886122" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/sodino" target="_blank" title="github"></a>
+		
+		
+		
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/android/" title="Android">Android<sup>13</sup></a></li>
+		
+			<li><a href="/categories/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/categories/C-C/" title="C/C++">C/C++<sup>26</sup></a></li>
+		
+			<li><a href="/categories/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/categories/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/categories/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/categories/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/categories/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Android/" title="Android">Android<sup>18</sup></a></li>
+		
+			<li><a href="/tags/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>25</sup></a></li>
+		
+			<li><a href="/tags/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/tags/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/tags/NDK/" title="NDK">NDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/tags/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/tags/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/tags/object-Object/" title="[object Object]">[object Object]<sup>1</sup></a></li>
+		
+			<li><a href="/tags/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+			<li><a href="/tags/markdown/" title="markdown">markdown<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://blog.csdn.net/sodino" target="_blank" title="Sodino Csdn">CSDN's Blog</a></li>
+    </ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Android/" style="font-size: 18.75px;">Android</a> <a href="/tags/AndroidStudio/" style="font-size: 13.75px;">AndroidStudio</a> <a href="/tags/C-C/" style="font-size: 20px;">C/C++</a> <a href="/tags/Eclipse/" style="font-size: 10px;">Eclipse</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/JDK/" style="font-size: 10px;">JDK</a> <a href="/tags/JNI/" style="font-size: 11.25px;">JNI</a> <a href="/tags/Java/" style="font-size: 10px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/LBS/" style="font-size: 10px;">LBS</a> <a href="/tags/Linux/" style="font-size: 16.25px;">Linux</a> <a href="/tags/Mac/" style="font-size: 11.25px;">Mac</a> <a href="/tags/NDK/" style="font-size: 10px;">NDK</a> <a href="/tags/Node-js/" style="font-size: 17.5px;">Node.js</a> <a href="/tags/Proguard/" style="font-size: 11.25px;">Proguard</a> <a href="/tags/React-Native/" style="font-size: 10px;">React-Native</a> <a href="/tags/object-Object/" style="font-size: 10px;">[object Object]</a> <a href="/tags/blog/" style="font-size: 12.5px;">blog</a> <a href="/tags/markdown/" style="font-size: 10px;">markdown</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://sodino.com" target="_blank" title="Sodino">Sodino</a>
+		
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"sodino"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+<script>
+    
+        var _bdImg = '4';
+    
+    window._bd_share_config={
+        "common":{
+            "bdSnsKey":{
+
+            },
+            "bdText":"",
+            "bdMini":"2",
+            "bdMiniList":[
+                "qzone",
+                "tsina",
+                "weixin",
+                "renren",
+                "tqq",
+                "tieba",
+                "douban",
+                "sqq",
+                "diandian",
+                "huaban",
+                "youdao",
+                "mail",
+                "ty",
+                "fbook",
+                "twi",
+                "linkedin",
+                "copy",
+                "print"
+            ],
+            "bdPic":"",
+            "bdStyle":"0",
+            "bdSize":"16"
+        },
+        "slide":{
+            "type":"slide",
+            "bdImg":_bdImg,
+            "bdPos":"right",
+            "bdTop":"350"
+        },
+        "image":{
+            "viewList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ],
+            "viewText":"分享：",
+            "viewSize":"16"
+        },
+        "selectShare":{
+            "bdContainerClass":null,
+            "bdSelectMiniList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ]
+        }
+    };
+    with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'null', 'null');  
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+</html>
+

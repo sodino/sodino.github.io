@@ -1,0 +1,601 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="baidu_union_verify" content="d1952c66cf48912e21c18c7c581f382a">
+  <meta name="360-site-verification" content="67fbcc5a67f4c65c057315b28fa0b2c8" />
+<meta name="google-site-verification" content="2GzxQ0VtXwTSUdmGm6DzcmhTzM_I9QmzCb_pzpMzD88" />
+  
+    <title>【JavaScript】正则表达式删除代码注释 | Sodino&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Sodino">
+    
+    <meta name="description" content="【JavaScript】正则表达式删除代码注释约定：本文中，以数字内容表示代码正文，其余字符内容表示注释内容。
+代码注释有三种形式：
+第一种：
+1123456 // aabbccdd
+第二种：
+1123456 /* aabbccdd */ 123456
+第三种：
+123123456 /* aabbc">
+    
+    
+    
+    
+    <link rel="alternate" href="atom.xml" title="Sodino&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='391982416296a0d54221f59fe35250d4';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+     
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Sodino&#39;s Blog">Sodino&#39;s Blog</a></h1>
+				<a class="blog-motto">见多食广 与食巨近</a>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于我</a></li>
+					
+					<li>
+					
+                                            <form class="search" action=http://zhannei.baidu.com/cse/search target="_blank">
+                                            <label>Search</label>
+                                        <input name="s" type="hidden" value= null ><input type="text" name="q" size="30" placeholder="搜索"><br>
+					
+					</li>
+				</ul>
+                            </nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/05/12/js-regexp-delete-code-comments/" title="【JavaScript】正则表达式删除代码注释" itemprop="url">【JavaScript】正则表达式删除代码注释</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://sodino.com" title="Sodino">Sodino</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-05-12T09:25:34.000Z" itemprop="datePublished">2016 05 12</time>
+    更新日期:<time datetime="2016-05-18T09:24:48.000Z" itemprop="dateModified">2016 05 18</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#【JavaScript】正则表达式删除代码注释"><span class="toc-number">1.</span> <span class="toc-text">【JavaScript】正则表达式删除代码注释</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#代码实现与运行效果"><span class="toc-number">2.</span> <span class="toc-text">代码实现与运行效果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#单行注释-的处理"><span class="toc-number">3.</span> <span class="toc-text">单行注释 // 的处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#多行注释-的处理"><span class="toc-number">4.</span> <span class="toc-text">多行注释 /* */的处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#整合"><span class="toc-number">5.</span> <span class="toc-text">整合</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#单行注释要排除-http-等"><span class="toc-number">6.</span> <span class="toc-text">单行注释要排除 http:// 等</span></a></li></ol>
+		</div>
+		
+		<h2 id="【JavaScript】正则表达式删除代码注释"><a href="#【JavaScript】正则表达式删除代码注释" class="headerlink" title="【JavaScript】正则表达式删除代码注释"></a>【JavaScript】正则表达式删除代码注释</h2><p>约定：本文中，以数字内容表示代码正文，其余字符内容表示注释内容。</p>
+<p>代码注释有三种形式：</p>
+<p>第一种：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">123456 // aabbccdd</div></pre></td></tr></table></figure>
+<p>第二种：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">123456 /* aabbccdd */ 123456</div></pre></td></tr></table></figure>
+<p>第三种：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line">123456 /* aabbccdd</div><div class="line"> * aabbccdd *</div><div class="line"> * aabbccdd */ 123456</div></pre></td></tr></table></figure>
+<p>其实第二种和第三种是同一类型。</p>
+<h2 id="代码实现与运行效果"><a href="#代码实现与运行效果" class="headerlink" title="代码实现与运行效果"></a>代码实现与运行效果</h2><p>直接给代码，看运行效果，然后再来讲正则表达式为什么要这么写.</p>
+<p>代码实现如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div></pre></td><td class="code"><pre><div class="line">function deleteCodeComments(code) &#123;</div><div class="line">    // 以下的两种方式都可以  // sodino.com</div><div class="line">//    var reg1 = /\/\/.*/g;</div><div class="line">//    var reg2 = /\/\*[\s\S]*?\*\//g;</div><div class="line">    var reg = /(\/\/.*)|(\/\*[\s\S]*?\*\/)/g;</div><div class="line">    var result = </div><div class="line">        // code.replace(reg1, &apos;&apos;).replace(reg2, &apos;&apos;);</div><div class="line">        code.replace(reg, &apos;&apos;);</div><div class="line">    return result;</div><div class="line">&#125;</div><div class="line"></div><div class="line">string = &apos;123456 //aabbccddee&apos;;</div><div class="line">string = string + &apos;\n\r&apos; + string + &apos;\n\r&apos; + string;</div><div class="line">// result = string.replace(/\/\/.*/g, &quot;&quot;); </div><div class="line">result = deleteCodeComments(string);</div><div class="line">console.log(&apos;-------------------------------------&apos;);</div><div class="line">console.log(&apos;delete // :&apos;);</div><div class="line">console.log(result);</div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line">string = &apos;654321/* aabbccdd */123456/* aabbcc&apos;</div><div class="line">       + &apos;\n\r&apos; + &apos;* aabbcc *&apos;</div><div class="line">       + &apos;\n\r&apos; + &apos;* aabbcc *&apos;</div><div class="line">       + &apos;\n\r&apos; + &apos;* aabbcc **/ 123456&apos;;</div><div class="line"></div><div class="line">string = string + string + string;</div><div class="line">// result = string.replace(/\/\*[.\s\S]*?\*\//g, &apos;&apos;); // sodino.com</div><div class="line">result = deleteCodeComments(string);</div><div class="line">console.log(&apos;-------------------------------------&apos;);</div><div class="line">console.log(&apos;delete /* */ multi line :&apos;);</div><div class="line">console.log(result);</div></pre></td></tr></table></figure>
+<p>控制台输出如下：</p>
+<p><img src="http://ww1.sinaimg.cn/large/e3dc9ceagw1f3sn8mtbkhj20co04zdg7.jpg" alt="delete.code.comments"></p>
+<h2 id="单行注释-的处理"><a href="#单行注释-的处理" class="headerlink" title="单行注释 // 的处理"></a>单行注释 <code>//</code> 的处理</h2><p>代码的每一行中，双斜杆<code>//</code>及其后内容，不管是任何字符，都是注释。<br>所以，只是正规表达式挑出以<code>//</code>开始，后续不论任何字符都直接可以删除。<br>所以具体的表达如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">//.*</div></pre></td></tr></table></figure>
+<p>开头的<code>//</code>表示遇到<code>//</code>就开始匹配，<br><code>.</code>表示<code>//</code>后可匹配的字符内容为除了换行符以外的任意一个字符，<br><code>*</code>表示<code>//</code>后面符合条件的字符出现次数可以为0或任意次数。<br>考虑到<code>//</code>在JavaScript中需要转义，所以在定义时转义后的表达式如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">// 原型是：//.*</div><div class="line">var reg1 = /\/\/.*/;</div></pre></td></tr></table></figure>
+<p>使用该表达式匹配代码，会发现只有第一次出现的的注释会被删除，第二个及以后的注释都还在。好吧…需要再添加全局匹配功能，即添加<code>g</code>。代码如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">var reg1 = /\/\/.*/g;</div></pre></td></tr></table></figure>
+<p>这样，不论代码中出现多少行 <code>//</code> 注释，都可以被一一匹配出现替换掉了。</p>
+<h2 id="多行注释-的处理"><a href="#多行注释-的处理" class="headerlink" title="多行注释 /* */的处理"></a>多行注释 <code>/* */</code>的处理</h2><p><code>/* */</code>的特殊之处在于它可以单行注释，也可以多行注释，所以比<code>//</code>要多过滤掉换行符，所以在<code>//</code>中的<code>.</code>只代表非换行符的其它所有字符，所以<code>.</code>就不能用了。</p>
+<p>看看<a href="http://www.w3school.com.cn/jsref/jsref_obj_regexp.asp" target="_blank" rel="external">正规表达式语法规范</a>中，可以用<code>\s</code>和<code>\S</code>的合集来表示所有的字符。</p>
+<table>
+<thead>
+<tr>
+<th>字符</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>\s</td>
+<td>匹配任何空白字符，包括空格、制表符、换页符等等。等价于[ \f\n\r\t\v]。</td>
+</tr>
+<tr>
+<td>\S</td>
+<td>匹配任何非空白字符。等价于[^ \f\n\r\t\v]。</td>
+</tr>
+</tbody>
+</table>
+<p>合集的表示用<code>[]</code>将<code>\s\S</code>包含在内即可。所以改进一下，初始的表达式如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">// 原型是：/*[\s\S]**/</div><div class="line">var reg2 = /\/\*[\s\S]*\*\//g;</div></pre></td></tr></table></figure>
+<p>即以<code>/*</code>开始，以<code>*/</code>结尾，中间的任意字符的组合都符合匹配规则。当然，<code>/*</code>及<code>*/</code>在上面的表达式中都用转义字符<code>\</code>转义了。</p>
+<p>但上面的表达式还有问题。当遇到如下的代码,</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">123456/* aabbc */ 123 /* aabbcc */ 456</div></pre></td></tr></table></figure>
+<p>匹配的结束字符串<code>*/</code>有两个，那么每次匹配时，该告诉解释器以该选择哪个呢？<br>这就涉及到正规表达式的贪婪模式与非贪婪模式。</p>
+<p>贪婪模式即尽可能的去匹配更多符合条件的字符内容，在上面的例子中，即匹配到<code>*/ 456</code>才结束，运算之后的结果将会是：<code>123456 456</code>。<br>非贪婪模式即匹配尽可能少的字符内容，在上面的例子中以匹配到<code>*/ 123</code>结束，运算的结果将会是<code>123456 123  456</code>。</p>
+<p>很明显，这种场景下我们需要的是非贪婪模式。<br>再次查询<a href="http://www.w3school.com.cn/jsref/jsref_obj_regexp.asp" target="_blank" rel="external">正规表达式语法规范</a>，可以用<code>?</code>来使用非贪婪模式，所以最后的改进代码如下：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">// 原型是：/*[\s\S]*?*/</div><div class="line">var reg2 = /\/\*[\s\S]*?\*\//g;</div></pre></td></tr></table></figure></p>
+<h2 id="整合"><a href="#整合" class="headerlink" title="整合"></a>整合</h2><p>当然，我们也可以通过 <code>|</code>串接起两个匹配规则。相当于’或‘运算。串接后的正规表达示如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div></pre></td><td class="code"><pre><div class="line">var reg = /(\/\/.*)|(\/\*[\s\S]*?\*\/)/g;</div></pre></td></tr></table></figure>
+<h2 id="单行注释要排除-http-等"><a href="#单行注释要排除-http-等" class="headerlink" title="单行注释要排除 http:// 等"></a>单行注释要排除 <code>http://</code> 等</h2><p>在使用过程中，发现上文中的单行注释会把 <code>http://</code> 或 <code>ftp://</code> 等字符串定义一并当做注释处理掉了。<br>下面给出带<code>http://</code>的干扰项的源字符串，及当前过滤出的错误结果及期待的正确结果。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">123456&quot;http://sodino.com&quot; // aabbccdd</div><div class="line"></div><div class="line">// 错误的结果：</div><div class="line">123456http:</div><div class="line"></div><div class="line">// 期待的正确结果：</div><div class="line">123456&quot;http://sodino.com&quot;</div></pre></td></tr></table></figure>
+<p>很可惜，JavaScript并不支持正则表达式中的<a href="https://zh.wikipedia.org/zh/%E6%AD%A3%E5%88%99%E8%A1%A8%E8%BE%BE%E5%BC%8F" target="_blank" rel="external">反向否定预查</a>，那只好再想想办法。</p>
+<p>查看JavaScript文档，发现<a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/replace" target="_blank" rel="external">String.prototype.replace(regexp|substr, newSubStr|function)</a>的第二个参数是支持函数的。即目标替换符可以通过函数来按自定义的逻辑来决定，这也意味着替换规则是灵活可变的。</p>
+<p>根据文档，传入的函数定义如下：</p>
+<table>
+<thead>
+<tr>
+<th>Possible name</th>
+<th>Supplied value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>match</td>
+<td>The matched substring. (Corresponds to $&amp; above.)</td>
+</tr>
+<tr>
+<td>p1, p2, …</td>
+<td>The nth parenthesized submatch string, provided the first argument to replace() was a RegExp object. (Corresponds to $1, $2, etc. above.) For example, if /(\a+)(\b+)/, was given, p1 is the match for \a+, and p2 for \b+.</td>
+</tr>
+<tr>
+<td>offset</td>
+<td>The offset of the matched substring within the whole string being examined. (For example, if the whole string was ‘abcd’, and the matched substring was ‘bc’, then this argument will be 1.)</td>
+</tr>
+<tr>
+<td>string</td>
+<td>The whole string being examined.</td>
+</tr>
+</tbody>
+</table>
+<p>那么通过该函数可以得到<code>//</code>开始的字符串<code>match</code>，由于在<code>match</code>中可能存在多个<code>//</code>，我们需要找到在<code>match</code>中第一个前缀不为<code>:</code>的<code>//</code>位置，从该位置开始的内容皆为代码注释。</p>
+<p>优化后的deleteCodeComments()函数具体的实现和逻辑说明见如下代码：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div></pre></td><td class="code"><pre><div class="line">function deleteCodeComments(code) &#123;</div><div class="line">    var reg = /(\/\/.*)?|(\/\*[\s\S]*?\*\/)/g;</div><div class="line">    var result = code.replace(reg, (match, p1, p2, offset, string) =&gt; &#123;</div><div class="line">        // match: 正则表达式匹配到的目标字符串</div><div class="line">        // p1: 表达式中第一备选的目标字符串，即单行注释</div><div class="line">        // p1: 表达式中第二备选的目标字符串，即多行注释</div><div class="line">        // offset: 匹配到的目标字符串在源字符串的起始位置</div><div class="line">        // string: 源字符串</div><div class="line"></div><div class="line">        var target = &apos;&apos;;</div><div class="line">        if (p1 != undefined &amp;&amp; p1 != null &amp;&amp; p1.length &gt; 0) &#123;</div><div class="line">            console.log(&apos;-------------------------------------&apos;);</div><div class="line">            console.log(&apos;match&apos;, match);</div><div class="line">            console.log(&apos;p1&apos;, p1);</div><div class="line">            console.log(&apos;p2&apos;, p2);</div><div class="line">            console.log(&apos;offset&apos;, offset);</div><div class="line">            console.log(&apos;string&apos;, string);    </div><div class="line"></div><div class="line"></div><div class="line">            if (offset == 0) &#123;</div><div class="line">                // 匹配字符串起始就是&apos;//&apos;，所以整行都是注释</div><div class="line">                return target;</div><div class="line">            &#125;</div><div class="line"></div><div class="line">            console.log(&apos;no return!!??&apos;);</div><div class="line"></div><div class="line">            // 获取当前字符串中第一个纯正的单选注释&apos;//&apos;</div><div class="line">            var idxSlash = 0;</div><div class="line">            while ((idxSlash = match.indexOf(&apos;//&apos;, idxSlash)) &gt;= 0 )&#123;</div><div class="line">                var prefix = string.charAt(offset + idxSlash -1);</div><div class="line">                if (prefix === &apos;:&apos;) &#123;</div><div class="line">                    // 前一个字符是&apos;:&apos;，所以不是单行注释</div><div class="line">                    idxSlash = idxSlash + &apos;//&apos;.length;</div><div class="line">                    continue;</div><div class="line">                &#125; else &#123;</div><div class="line">                    target = match.substring(0, idxSlash)</div><div class="line">                    break;</div><div class="line">                &#125;</div><div class="line">            &#125;;</div><div class="line">        &#125;</div><div class="line">        return target;</div><div class="line">    &#125;);</div><div class="line">    return result;</div><div class="line">&#125;</div><div class="line"></div><div class="line">function deleteCodeComments(code) &#123;</div><div class="line">    // 另一种思路更简便的办法</div><div class="line">    // 将&apos;://&apos;全部替换为特殊字符，删除注释代码后再将其恢复回来</div><div class="line">    var tmp1 = &apos;:\/\/&apos;;</div><div class="line">    var regTmp1 = /:\/\//g;</div><div class="line"></div><div class="line">    var tmp2 = &apos;@:@/@/@&apos;;</div><div class="line">    var regTmp2 = /@:@\/@\/@/g;</div><div class="line">    code = code.replace(regTmp1, tmp2);</div><div class="line"></div><div class="line"></div><div class="line">    var reg = /(\/\/.*)?|(\/\*[\s\S]*?\*\/)/g;</div><div class="line">    code = code.replace(reg, &apos;&apos;);</div><div class="line"></div><div class="line">    result = code.replace(regTmp2, tmp1);</div><div class="line">    return result;</div><div class="line">&#125;</div><div class="line"></div><div class="line">string = &apos;123456&quot;http://sodino.com&quot; // aabbcc http://sodino.com&apos;;</div><div class="line">string = string + &apos;\n\r&apos; + string + &apos;\n\r&apos; + string;</div><div class="line">// result = string.replace(/\/\/.*/g, &quot;&quot;); </div><div class="line">result = deleteCodeComments(string);</div><div class="line">console.log(&apos;-------------------------------------&apos;);</div><div class="line">console.log(&apos;delete // :&apos;);</div><div class="line">console.log(result);</div></pre></td></tr></table></figure></p>
+<p>运行效果如下图：<br><img src="http://ww3.sinaimg.cn/mw1024/e3dc9ceagw1f3yl183cpxj20ej0fj417.jpg" alt="delete.code.comments"></p>
+<hr>
+<p><a href="http://sodino.com/about/">About Sodino</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/JavaScript/">JavaScript</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/JavaScript/">JavaScript</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://sodino.com/2016/05/12/js-regexp-delete-code-comments/" data-title="【JavaScript】正则表达式删除代码注释 | Sodino&#39;s Blog" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/05/12/js-delete-empty-object/" title="【JavaScript】对象结构的简化--删除Json中的空属性、空数组">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  【JavaScript】对象结构的简化--删除Json中的空属性、空数组</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/05/12/nodejs-gb2312-charset/"  title="【Node.js】使用iconv-lite解决中文乱码 (GB2312)">
+ <strong>NEXT:</strong><br/> 
+ <span>【Node.js】使用iconv-lite解决中文乱码 (GB2312)
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#【JavaScript】正则表达式删除代码注释"><span class="toc-number">1.</span> <span class="toc-text">【JavaScript】正则表达式删除代码注释</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#代码实现与运行效果"><span class="toc-number">2.</span> <span class="toc-text">代码实现与运行效果</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#单行注释-的处理"><span class="toc-number">3.</span> <span class="toc-text">单行注释 // 的处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#多行注释-的处理"><span class="toc-number">4.</span> <span class="toc-text">多行注释 /* */的处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#整合"><span class="toc-number">5.</span> <span class="toc-text">整合</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#单行注释要排除-http-等"><span class="toc-number">6.</span> <span class="toc-text">单行注释要排除 http:// 等</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	<div class="social-list" class="clearfix">
+		
+		<a href="http://weibo.com/3822886122" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/sodino" target="_blank" title="github"></a>
+		
+		
+		
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/android/" title="Android">Android<sup>13</sup></a></li>
+		
+			<li><a href="/categories/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/categories/C-C/" title="C/C++">C/C++<sup>26</sup></a></li>
+		
+			<li><a href="/categories/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/categories/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/categories/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/categories/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/categories/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Android/" title="Android">Android<sup>18</sup></a></li>
+		
+			<li><a href="/tags/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>25</sup></a></li>
+		
+			<li><a href="/tags/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/tags/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/tags/NDK/" title="NDK">NDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/tags/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/tags/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/tags/object-Object/" title="[object Object]">[object Object]<sup>1</sup></a></li>
+		
+			<li><a href="/tags/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+			<li><a href="/tags/markdown/" title="markdown">markdown<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://blog.csdn.net/sodino" target="_blank" title="Sodino Csdn">CSDN's Blog</a></li>
+    </ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Android/" style="font-size: 18.75px;">Android</a> <a href="/tags/AndroidStudio/" style="font-size: 13.75px;">AndroidStudio</a> <a href="/tags/C-C/" style="font-size: 20px;">C/C++</a> <a href="/tags/Eclipse/" style="font-size: 10px;">Eclipse</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/JDK/" style="font-size: 10px;">JDK</a> <a href="/tags/JNI/" style="font-size: 11.25px;">JNI</a> <a href="/tags/Java/" style="font-size: 10px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/LBS/" style="font-size: 10px;">LBS</a> <a href="/tags/Linux/" style="font-size: 16.25px;">Linux</a> <a href="/tags/Mac/" style="font-size: 11.25px;">Mac</a> <a href="/tags/NDK/" style="font-size: 10px;">NDK</a> <a href="/tags/Node-js/" style="font-size: 17.5px;">Node.js</a> <a href="/tags/Proguard/" style="font-size: 11.25px;">Proguard</a> <a href="/tags/React-Native/" style="font-size: 10px;">React-Native</a> <a href="/tags/object-Object/" style="font-size: 10px;">[object Object]</a> <a href="/tags/blog/" style="font-size: 12.5px;">blog</a> <a href="/tags/markdown/" style="font-size: 10px;">markdown</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://sodino.com" target="_blank" title="Sodino">Sodino</a>
+		
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"sodino"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+<script>
+    
+        var _bdImg = '4';
+    
+    window._bd_share_config={
+        "common":{
+            "bdSnsKey":{
+
+            },
+            "bdText":"",
+            "bdMini":"2",
+            "bdMiniList":[
+                "qzone",
+                "tsina",
+                "weixin",
+                "renren",
+                "tqq",
+                "tieba",
+                "douban",
+                "sqq",
+                "diandian",
+                "huaban",
+                "youdao",
+                "mail",
+                "ty",
+                "fbook",
+                "twi",
+                "linkedin",
+                "copy",
+                "print"
+            ],
+            "bdPic":"",
+            "bdStyle":"0",
+            "bdSize":"16"
+        },
+        "slide":{
+            "type":"slide",
+            "bdImg":_bdImg,
+            "bdPos":"right",
+            "bdTop":"350"
+        },
+        "image":{
+            "viewList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ],
+            "viewText":"分享：",
+            "viewSize":"16"
+        },
+        "selectShare":{
+            "bdContainerClass":null,
+            "bdSelectMiniList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ]
+        }
+    };
+    with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'null', 'null');  
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+</html>
+

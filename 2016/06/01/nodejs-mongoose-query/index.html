@@ -1,0 +1,557 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="baidu_union_verify" content="d1952c66cf48912e21c18c7c581f382a">
+  <meta name="360-site-verification" content="67fbcc5a67f4c65c057315b28fa0b2c8" />
+<meta name="google-site-verification" content="2GzxQ0VtXwTSUdmGm6DzcmhTzM_I9QmzCb_pzpMzD88" />
+  
+    <title>【Node.js】mongoose教程05--查询 | Sodino&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Sodino">
+    
+    <meta name="description" content="本文的查询是指存储了5个手机数据后再查询。存储实现见文章：【Node.js】mongoose教程–存储。
+GitHub源码链接：sodino#MongoDemo
+
+Model与QueryModel.find()方法会返回Query对象。
+Model.find()方法原型如下：
+12345678910">
+    
+    
+    
+    
+    <link rel="alternate" href="atom.xml" title="Sodino&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='391982416296a0d54221f59fe35250d4';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+     
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Sodino&#39;s Blog">Sodino&#39;s Blog</a></h1>
+				<a class="blog-motto">见多食广 与食巨近</a>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于我</a></li>
+					
+					<li>
+					
+                                            <form class="search" action=http://zhannei.baidu.com/cse/search target="_blank">
+                                            <label>Search</label>
+                                        <input name="s" type="hidden" value= null ><input type="text" name="q" size="30" placeholder="搜索"><br>
+					
+					</li>
+				</ul>
+                            </nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2016/06/01/nodejs-mongoose-query/" title="【Node.js】mongoose教程05--查询" itemprop="url">【Node.js】mongoose教程05--查询</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://sodino.com" title="Sodino">Sodino</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2016-06-01T08:29:17.000Z" itemprop="datePublished">2016 06 01</time>
+    更新日期:<time datetime="2016-06-05T08:22:22.000Z" itemprop="dateModified">2016 06 05</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Model与Query"><span class="toc-number">1.</span> <span class="toc-text">Model与Query</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#查询全部数据"><span class="toc-number">2.</span> <span class="toc-text">查询全部数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#条件查询"><span class="toc-number">3.</span> <span class="toc-text">条件查询</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#条件查询–数组"><span class="toc-number">4.</span> <span class="toc-text">条件查询–数组</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#组合条件查询"><span class="toc-number">5.</span> <span class="toc-text">组合条件查询</span></a></li></ol>
+		</div>
+		
+		<p>本文的查询是指存储了5个手机数据后再查询。存储实现见文章：<a href="/2016/06/01/nodejs-mongoose-save/">【Node.js】mongoose教程–存储</a>。</p>
+<p>GitHub源码链接：<a href="https://github.com/sodino/MongoDemo" target="_blank" rel="external">sodino#MongoDemo</a></p>
+<hr>
+<h2 id="Model与Query"><a href="#Model与Query" class="headerlink" title="Model与Query"></a>Model与Query</h2><p><code>Model.find()</code>方法会返回<code>Query</code>对象。</p>
+<p><a href="http://mongoosejs.com/docs/api.html#model_Model.find" target="_blank" rel="external">Model.find()</a>方法原型如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">Model.find(conditions, [projection], [options], [callback])</div><div class="line">    Finds documents</div><div class="line">  </div><div class="line"></div><div class="line">Parameters:</div><div class="line">    conditions &lt;Object&gt;</div><div class="line">    [projection] &lt;Object&gt; optional fields to return (http://bit.ly/1HotzBo)</div><div class="line">    [options] &lt;Object&gt; optional</div><div class="line">    [callback] &lt;Function&gt;</div><div class="line">  </div><div class="line">Returns: </div><div class="line">	&lt;Query&gt;</div></pre></td></tr></table></figure>
+<p>参数<code>conditions</code>是必填项，用于设定查询条件。<br>参数<code>projection</code>是可选项，用于设定查询结果的返回对象所包含的字段范围。例如查询的<code>Phone</code>返回的结果对象只包含<code>device</code>字段或去除<code>device</code>字段。详情见链接<a href="https://docs.mongodb.com/manual/reference/operator/aggregation/project/" target="_blank" rel="external">$project (aggregation)</a>。<br>参数<code>options</code>是可选项，用于对查询的结果做功能处理，如排序<code>sort</code>、数量限制<code>limit</code>、查询跳跃<code>skip</code>等功能。详情见链接<a href="http://mongoosejs.com/docs/api.html#query_Query-setOptions" target="_blank" rel="external">Query.Options</a>.<br>参数<code>callback</code>是可选项，用于获取查询结果。</p>
+<p>该方法执行后，返回<code>Query</code>一个对象。<br><code>Query</code>可以提供更加简洁明了的查询方法，这些查询方法都与<code>Model.find()</code>中的参数<code>conditions</code>、<code>projection</code>、<code>options</code>几乎存在着一一对应的功能关系。<br>如<code>where() or() gte()</code>与<code>conditions</code>、<code>select()</code>与<code>projection</code>、<code>sort() limit()</code>与<code>options</code>。<br><code>Query</code>也有一些功能扩展函数，如计算<code>count()</code>、排重<code>distinct()</code>；也可以直接用于更新与删除数据。</p>
+<p><code>Query</code>推荐使用链式调用的代码编写方式，在链式代码的末尾调用<code>.exec(callback)</code>获取查询结果。<br>如以下代码演示：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line">// 查询：价格大于等于1000且小于等于4000，</div><div class="line">// 且设备名称包含大小写不敏感的`huawei`，</div><div class="line">// 并获取该手机安装的的前2个app</div><div class="line">// chaining</div><div class="line">Phone</div><div class="line">	.where(&apos;price&apos;).gte(1000).lte(4000) </div><div class="line">	.where(&apos;device&apos;, /^huawei/i) </div><div class="line">	.where(&apos;apps&apos;).slice(2)	 </div><div class="line">	.exec(callback)</div></pre></td></tr></table></figure></p>
+<p>下面来演示一些查询的示例：</p>
+<hr>
+<h2 id="查询全部数据"><a href="#查询全部数据" class="headerlink" title="查询全部数据"></a>查询全部数据</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line">Phone.find((err, phones) =&gt; &#123;</div><div class="line">	if (err) &#123;</div><div class="line">		console.log(&apos;findAllPhone err:&apos;, err);</div><div class="line">	&#125; else &#123;</div><div class="line">		console.log(&apos;---findAllPhone---------------------------------------&apos;);</div><div class="line">		</div><div class="line">		phones.forEach((element, index, phones) =&gt; &#123;</div><div class="line">			console.log(index, element);</div><div class="line">		&#125;);</div><div class="line">	&#125;</div></pre></td></tr></table></figure>
+<p>控制台输出：<br><img src="http://ww3.sinaimg.cn/mw1024/e3dc9ceagw1f4goxvq5srj20g20o4798.jpg" alt="findAllPhone"></p>
+<hr>
+<h2 id="条件查询"><a href="#条件查询" class="headerlink" title="条件查询"></a>条件查询</h2><p>找出非智能手机： </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">function findNoSmartPhone() &#123;</div><div class="line">	Phone.find(&#123;isSmart : false&#125;).exec((err, phones) =&gt; &#123;</div><div class="line">		console.log(&apos;---findNoSmartPhone()---------------------------------&apos;);</div><div class="line">		if (err) &#123;</div><div class="line">			console.log(err);</div><div class="line">		&#125; else &#123;</div><div class="line">			phones.forEach((element, index, phones) =&gt; &#123;</div><div class="line">				console.log(index, element);</div><div class="line">			&#125;);</div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>控制台输出：<br><img src="http://ww4.sinaimg.cn/mw1024/e3dc9ceagw1f4gp31b52bj20hc04kmxv.jpg" alt="findNoSmartPhone"></p>
+<hr>
+<h2 id="条件查询–数组"><a href="#条件查询–数组" class="headerlink" title="条件查询–数组"></a>条件查询–数组</h2><p>在Phone中，有个<code>apps</code>中为包含一个<code>name</code>字段的对象数组。定义如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line">// 开始定义Schema</div><div class="line">var phoneSchema = new Schema(&#123;</div><div class="line">    ... ...</div><div class="line">	apps		: [&#123;name : String&#125;],</div><div class="line">    ... ...</div><div class="line">&#125;);</div></pre></td></tr></table></figure>
+<p>如果需要查找安装了哪些手机安装了<code>Radio</code>这个软件，编写条件为<code>{&quot;apps.name&quot; : &quot;Radio&quot;}</code>可以这么查询：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line">function findPhoneInstalledRadio() &#123;</div><div class="line">	Phone.find(&#123;&apos;apps.name&apos; : &apos;Radio&apos;&#125;).exec((err, phones)=&gt;&#123;</div><div class="line">		console.log(&apos;---findPhoneInstalledRadio()---------------------&apos;);</div><div class="line">		if (err) &#123;</div><div class="line">			console.log(err);</div><div class="line">		&#125; else &#123;</div><div class="line">			phones.forEach((element, index, phones) =&gt; &#123;</div><div class="line">				console.log(index, element);</div><div class="line">			&#125;)</div><div class="line">		&#125;</div><div class="line">	&#125;);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>控制台输出如下：</p>
+<p><img src="http://ww2.sinaimg.cn/mw1024/e3dc9ceagw1f4gp7rg5nuj20g909fq4h.jpg" alt="findPhoneInstalledRadio"></p>
+<hr>
+<h2 id="组合条件查询"><a href="#组合条件查询" class="headerlink" title="组合条件查询"></a>组合条件查询</h2><p>在上面的两个查询演示了普通字段及数组下对象字段的指定条件查询，但都是单条件查询。<br>现在演示更加复杂的组合条件查询。</p>
+<p>即涉及到对比条件或逻辑条件的拼装。</p>
+<p>对比条件操作符（<a href="https://docs.mongodb.com/manual/reference/operator/query-comparison/" target="_blank" rel="external">点击查看详情</a>）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div></pre></td><td class="code"><pre><div class="line">$eq   // 相等</div><div class="line">$ne   // 不等于</div><div class="line"></div><div class="line">$gt   // 大于</div><div class="line">$gte  // 大于等于</div><div class="line"></div><div class="line">$lt   // 小于</div><div class="line">$lte  // 小于等于</div><div class="line"></div><div class="line">$in   // 属于，处于</div><div class="line">$nin  // 不属于，不处于</div></pre></td></tr></table></figure></p>
+<p>逻辑条件操作符（<a href="http://docs.mongodb.com/manual/reference/operator/query-logical" target="_blank" rel="external">点击查看详情</a>）：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line">$or   // 或</div><div class="line">$and  // 且</div><div class="line">$not  // 非</div><div class="line">$nor  // 对$or的条件取反，即$or的补集</div><div class="line">```` </div><div class="line"></div><div class="line">以上的操作符可用直接用在`Model.find()`中的`conditions`参数中；当然`Query`类也提供了一一对应的查询方法。</div><div class="line">以下代码演示组合条件：* 查找中国或韩国厂商且价格处于[1000, 4000)范围内的手机 *</div><div class="line">可以有如下4种查询方式，它们的查询结果是等价的。</div><div class="line"></div><div class="line">方法1和方法3在`Model.find()`中`condictions`参数直接使用运算操作符；</div><div class="line">方法2和方法4使用`Query.where().[chain_methods()].exec(callback)`方式。</div><div class="line">两种方法是等价的，爱用哪个用哪个吧。</div><div class="line"></div><div class="line">在本例子中，可以发现`$or`和`$in`在某些场合是可以等价转换的。</div><div class="line">即以下两种方式表达的意思都是指手机厂商是China或South Korea：</div></pre></td></tr></table></figure></p>
+<p>$or:[<br>    {‘manufacturer.country’:’China’},<br>    {‘manufacturer.country’:’South Korea’}<br>    ]<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"></div></pre></td></tr></table></figure></p>
+<p>{<br>‘manufacturer.country’ :<br>    {$in:[‘China’, ‘South Korea’]}<br>}    </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"></div><div class="line">接下来看4种方法的代码实现：</div></pre></td></tr></table></figure>
+<p>// 方法1<br>Phone.find({$or:[<br>        {‘manufacturer.country’:’China’},<br>        {‘manufacturer.country’:’South Korea’}<br>    ], $and:[<br>        {‘price’ : {$gte : 1000}},<br>        {‘price’ : {$lt : 4000}}<br>    ]<br>}).exec((err, phones) =&gt; {<br>    console.log(‘—findChina_or_SouthKorea_and_1000_4000Phone()—————————-‘);<br>    if (err) {<br>        console.log(err);<br>    } else {<br>        phones.forEach((element, index, phones) =&gt; {<br>             console.log(index, element);<br>        });<br>    }</p>
+<p>});  </p>
+<p>// 方法2<br>Phone.find()<br>    .or([{‘manufacturer.country’:’China’}, {‘manufacturer.country’:’South Korea’}])<br>    .where(‘price’).gte(1000).lt(4000)<br>    .exec((err, phones) =&gt; {<br>        console.log(‘—findChina_or_SouthKorea_and_1000_4000Phone()—————————-‘);<br>        if (err) {<br>            console.log(err);<br>        } else {<br>            phones.forEach((element, index, phones) =&gt; {<br>                console.log(index, element);<br>            });<br>        }</p>
+<pre><code>});
+</code></pre><p>// 方法3<br>Phone.find({‘manufacturer.country’ :<br>    {$in:[‘China’, ‘South Korea’]},<br>     $and:[<br>        {‘price’ : {$gte : 1000}},<br>        {‘price’ : {$lt : 4000}}<br>     ]<br>}).exec((err, phones) =&gt; {<br>    console.log(‘—findChina_or_SouthKorea_and_1000_4000Phone()—————————-‘);<br>    if (err) {<br>        console.log(err);<br>    } else {<br>        phones.forEach((element, index, phones) =&gt; {<br>            console.log(index, element);<br>        });<br>    }<br>});</p>
+<p>// 方法4<br>Phone.find()<br>    .where(‘manufacturer.country’).in([‘China’, ‘South Korea’])<br>    .where(‘price’).gte(1000).lt(4000)<br>    .exec((err, phones) =&gt; {<br>        console.log(‘—findChina_or_SouthKorea_and_1000_4000Phone()—————————-‘);<br>        if (err) {<br>            console.log(err);<br>        } else {<br>            phones.forEach((element, index, phones) =&gt; {<br>                console.log(index, element);<br>            });<br>        }</p>
+<pre><code>});
+</code></pre><p>````</p>
+<p>控制台输出如下：<br><img src="http://ww2.sinaimg.cn/mw1024/e3dc9ceagw1f4gq4ekmo8j20hy09tdhs.jpg" alt="findChina_or_SouthKorea_and_1000_4000Phone"></p>
+<hr>
+<p>下一篇<a href="/2016/06/02/nodejs-mongoose-sort/">mongoose教程–排序</a></p>
+<hr>
+<p><a href="http://sodino.com/about/">About Sodino</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Node-js/">Node.js</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/Node-js/">Node.js</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://sodino.com/2016/06/01/nodejs-mongoose-query/" data-title="【Node.js】mongoose教程05--查询 | Sodino&#39;s Blog" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2016/06/02/nodejs-mongoose-sort/" title="【Node.js】mongoose教程06--排序">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  【Node.js】mongoose教程06--排序</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2016/06/01/nodejs-mongoose-save/"  title="【Node.js】mongoose教程04--存储">
+ <strong>NEXT:</strong><br/> 
+ <span>【Node.js】mongoose教程04--存储
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Model与Query"><span class="toc-number">1.</span> <span class="toc-text">Model与Query</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#查询全部数据"><span class="toc-number">2.</span> <span class="toc-text">查询全部数据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#条件查询"><span class="toc-number">3.</span> <span class="toc-text">条件查询</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#条件查询–数组"><span class="toc-number">4.</span> <span class="toc-text">条件查询–数组</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#组合条件查询"><span class="toc-number">5.</span> <span class="toc-text">组合条件查询</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	<div class="social-list" class="clearfix">
+		
+		<a href="http://weibo.com/3822886122" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/sodino" target="_blank" title="github"></a>
+		
+		
+		
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/android/" title="Android">Android<sup>13</sup></a></li>
+		
+			<li><a href="/categories/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/categories/C-C/" title="C/C++">C/C++<sup>26</sup></a></li>
+		
+			<li><a href="/categories/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/categories/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/categories/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/categories/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/categories/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Android/" title="Android">Android<sup>18</sup></a></li>
+		
+			<li><a href="/tags/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>25</sup></a></li>
+		
+			<li><a href="/tags/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/tags/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/tags/NDK/" title="NDK">NDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/tags/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/tags/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/tags/object-Object/" title="[object Object]">[object Object]<sup>1</sup></a></li>
+		
+			<li><a href="/tags/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+			<li><a href="/tags/markdown/" title="markdown">markdown<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://blog.csdn.net/sodino" target="_blank" title="Sodino Csdn">CSDN's Blog</a></li>
+    </ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Android/" style="font-size: 18.75px;">Android</a> <a href="/tags/AndroidStudio/" style="font-size: 13.75px;">AndroidStudio</a> <a href="/tags/C-C/" style="font-size: 20px;">C/C++</a> <a href="/tags/Eclipse/" style="font-size: 10px;">Eclipse</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/JDK/" style="font-size: 10px;">JDK</a> <a href="/tags/JNI/" style="font-size: 11.25px;">JNI</a> <a href="/tags/Java/" style="font-size: 10px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/LBS/" style="font-size: 10px;">LBS</a> <a href="/tags/Linux/" style="font-size: 16.25px;">Linux</a> <a href="/tags/Mac/" style="font-size: 11.25px;">Mac</a> <a href="/tags/NDK/" style="font-size: 10px;">NDK</a> <a href="/tags/Node-js/" style="font-size: 17.5px;">Node.js</a> <a href="/tags/Proguard/" style="font-size: 11.25px;">Proguard</a> <a href="/tags/React-Native/" style="font-size: 10px;">React-Native</a> <a href="/tags/object-Object/" style="font-size: 10px;">[object Object]</a> <a href="/tags/blog/" style="font-size: 12.5px;">blog</a> <a href="/tags/markdown/" style="font-size: 10px;">markdown</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://sodino.com" target="_blank" title="Sodino">Sodino</a>
+		
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"sodino"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+<script>
+    
+        var _bdImg = '4';
+    
+    window._bd_share_config={
+        "common":{
+            "bdSnsKey":{
+
+            },
+            "bdText":"",
+            "bdMini":"2",
+            "bdMiniList":[
+                "qzone",
+                "tsina",
+                "weixin",
+                "renren",
+                "tqq",
+                "tieba",
+                "douban",
+                "sqq",
+                "diandian",
+                "huaban",
+                "youdao",
+                "mail",
+                "ty",
+                "fbook",
+                "twi",
+                "linkedin",
+                "copy",
+                "print"
+            ],
+            "bdPic":"",
+            "bdStyle":"0",
+            "bdSize":"16"
+        },
+        "slide":{
+            "type":"slide",
+            "bdImg":_bdImg,
+            "bdPos":"right",
+            "bdTop":"350"
+        },
+        "image":{
+            "viewList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ],
+            "viewText":"分享：",
+            "viewSize":"16"
+        },
+        "selectShare":{
+            "bdContainerClass":null,
+            "bdSelectMiniList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ]
+        }
+    };
+    with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'null', 'null');  
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+</html>
+

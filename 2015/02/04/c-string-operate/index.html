@@ -1,0 +1,600 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="baidu_union_verify" content="d1952c66cf48912e21c18c7c581f382a">
+  <meta name="360-site-verification" content="67fbcc5a67f4c65c057315b28fa0b2c8" />
+<meta name="google-site-verification" content="2GzxQ0VtXwTSUdmGm6DzcmhTzM_I9QmzCb_pzpMzD88" />
+  
+    <title>【C/C++】string操作方法汇总 | Sodino&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Sodino">
+    
+    <meta name="description" content="本文提供【C/C++】string操作方法汇总如下：
+
+判断内容是否相同
+字符串复制
+字符串拼接
+字符串拼接单个char
+字符串类别检查
+字符串子串截取 (substring)
+字符串界位符切割 (strtok   strtok_r)
+
+#判断内容是否相同
+#include &amp;lt;string.h">
+    
+    
+    
+    
+    <link rel="alternate" href="atom.xml" title="Sodino&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='391982416296a0d54221f59fe35250d4';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+     
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Sodino&#39;s Blog">Sodino&#39;s Blog</a></h1>
+				<a class="blog-motto">见多食广 与食巨近</a>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于我</a></li>
+					
+					<li>
+					
+                                            <form class="search" action=http://zhannei.baidu.com/cse/search target="_blank">
+                                            <label>Search</label>
+                                        <input name="s" type="hidden" value= null ><input type="text" name="q" size="30" placeholder="搜索"><br>
+					
+					</li>
+				</ul>
+                            </nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/02/04/c-string-operate/" title="【C/C++】string操作方法汇总" itemprop="url">【C/C++】string操作方法汇总</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://sodino.com" title="Sodino">Sodino</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2015-02-04T14:51:55.000Z" itemprop="datePublished">2015 02 04</time>
+    更新日期:<time datetime="2015-03-23T23:44:54.000Z" itemprop="dateModified">2015 03 24</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		
+		</div>
+		
+		<p>本文提供【C/C++】string操作方法汇总如下：</p>
+<ul>
+<li>判断内容是否相同</li>
+<li>字符串复制</li>
+<li>字符串拼接</li>
+<li>字符串拼接单个char</li>
+<li>字符串类别检查</li>
+<li>字符串子串截取 (substring)</li>
+<li>字符串界位符切割 (strtok   strtok_r)</li>
+</ul>
+<p>#判断内容是否相同</p>
+<p><code>#include &lt;string.h&gt;</code></p>
+<ul>
+<li><p>int strcmp(const char *s1, const char *s2);  <strong>Thread-Safe</strong><br>int strncmp(const char *s1, const char *s2, size_t n);  <strong>Thread-Safe</strong><br>对s1与s2进行的比较。大小写敏感。<br>return ==0, s1 == s2;<br>return &gt;0,  s1 &gt; s2;<br>return &lt;0,  s1 &lt; s2;</p>
+</li>
+<li><p>int memcmp(const void *s1, const void *s2, size_t n); <strong>Thread-safe</strong><br>注意，这里的参数是<strong>void</strong>而不是普通的char *，所以memcmp可以对更广泛的对象进行对比，如字符数组，整型，类，结构体等。比较的内容为第三个参数所限定的长度范围内。</p>
+</li>
+<li><p>int strcoll(const char *s1, const char *s2);<br>比较字符串s1和s2。功能和strcmp类似,用法也一样.<br>特别注意:strcoll()会依环境变量LC_COLLATE所指定的文字排列次序来比较s1和s2字符串。<br>strcmp是根据<strong>ASCII</strong>来比较2个字符串的.若LC_COLLATE为”POSIX”或”C”，则strcoll()与strcmp()作用完全相同。</p>
+</li>
+</ul>
+<p><code>#include &lt;strings.h&gt;</code></p>
+<ul>
+<li><p>int strcasecmp(const char *s1, const char *s2);<br>int strncasecmp(const char *s1, const char *s2, size_t n);<br>对s1与s2进行大小写无关的比较。<br>return ==0, s1 == s2;<br>return &gt;0,  s1 &gt; s2;<br>return &lt;0,  s1 &lt; s2;</p>
+</li>
+<li><p>int <del>bcmp</del>(const void *s1, const void *s2, size_t n)  <strong>Thread-Safe</strong><br>已废弃的方法，不推荐使用。推荐使用memcmp代替。</p>
+</li>
+</ul>
+<p>#字符串复制<br><code>#include &lt;string.h&gt;</code></p>
+<ul>
+<li>char *strcpy(char *dest, const char *src);  <strong>Thread-Safe</strong><br>char *strncpy(char *dest, const char *src, size_t n);  <strong>Thread-Safe</strong><br>将src指向的字符串(全部或指定的n个字符)复制到dest中，其中dest与src指向的内存空间不能重叠。要保证dest有足够的空间能够容纳src中的内容，否则<strong>may make the impossible possible.</strong><br>对于strncpy()只负责拷贝指定长度的字符，拷贝完并不会在字符的结尾加上字符串终止符。所以见下面的示例代码中会打印出”c.st strcpy()”.对于n其长度最大值就为dest_length -1，因为最后一个位置还要放一个字符串终止符。</li>
+</ul>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">char</span> * strA = <span class="string">"Test strcpy()"</span>; <span class="comment">// 对于下面的strDest中长度最小要13 + 1=14。</span></div><div class="line"><span class="keyword">char</span> strDest[<span class="number">100</span>]; <span class="comment">// 声明一个数组，空间对于将要复制的字符串来说要足够大。</span></div><div class="line"><span class="keyword">char</span> *<span class="built_in">strcpy</span> = <span class="built_in">strcpy</span>(strDest, strA); <span class="comment">// 执行复制。</span></div><div class="line"><span class="built_in">printf</span>(<span class="string">"%s \n"</span>, <span class="built_in">strcpy</span>); <span class="comment">// 打印出：Test strcpy()</span></div><div class="line"><span class="built_in">strcpy</span> = <span class="built_in">strncpy</span>(strDest, <span class="string">"c.code"</span>, <span class="number">2</span>); <span class="comment">// 执行指定长度的字符串内容。</span></div><div class="line"><span class="built_in">printf</span>(<span class="string">"%s \n"</span>, <span class="built_in">strcpy</span>); <span class="comment">// 打印出：c.st strcpy()</span></div></pre></td></tr></table></figure>
+<p>strncpy()如果src比较小，而指定的n比较大时，则strncpy会把多出来的长度用/0填充，这就引出一个效率上不高的问题：如下面的代码中strncpy会填写99个char，而不止是”ab”本身。<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">char</span> strDest[<span class="number">100</span>];</div><div class="line"><span class="built_in">strncpy</span>(strDest, <span class="string">"ab"</span>, <span class="number">99</span>);</div></pre></td></tr></table></figure></p>
+<ul>
+<li><p>void *memcpy(void *dest, const void *src, size_t n);<br>用法同strncpy()，但注意到这是纯内存拷贝操作，可以对更广泛的对象进行对比，如字符数组，整型，类，结构体等。</p>
+</li>
+<li><p>size_t strlcpy(char * restrict dst, const char * restrict src, size_t size);<br>strlcpy()是为替代strncpy()而实现的更简易、更安全、更不容易出错的字符串拷贝方式。<br>使用时仅需如下例子在size参数中传入sizeof(dst)即可不用考虑执行结果中是否包含字符串终止符的问题（自动给加上了）。<br>strlcpy()仅仅会从src中拷贝最多size -1个字符，并在dest最后添加上字符串终止符。<br>strlcpy()的返回值是src的长度，所以一旦结果为len &gt; sizeof(buf)，则表示拷贝的结果把src截断了。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">char</span> *src, *p, buf[BUFSIZ];</div><div class="line"><span class="keyword">int</span> len = strlcpy(buf, src, <span class="keyword">sizeof</span>(buf));</div><div class="line"><span class="keyword">if</span> (len &gt; <span class="keyword">sizeof</span>(buf))｛</div><div class="line">		<span class="built_in">printf</span>(<span class="string">"%s \n"</span>, <span class="string">"string src is truncated."</span>);</div><div class="line">｝</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>#字符串拼接<br><code>#include &lt;string.h&gt;</code></p>
+<ul>
+<li><p>char *strcat(char *dest, const char *src);  <strong>Thread-Safe</strong><br>char *strncat(char *dest, const char *src, size_t n);  <strong>Thread-Safe</strong><br>string concatenate<br>字符串拼接同上面的复制，都要求dest有足够的空间，且dest和src所指向的空间不能重叠。<br>dest的空间长度最小值为 strlen(dest) + n + 1。其中n表示strlen(src)或指定要拼接的长度值n，最后一个1表示字符串终止符。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="comment">// 声明一个数组，空间对于将要复制和拼接的字符串来说要足够大。</span></div><div class="line"><span class="comment">// 6是最小值， 6 = strlen(strA) + 2(strcat) + 1(\0)</span></div><div class="line"><span class="keyword">char</span> strDest[<span class="number">6</span>];</div><div class="line"><span class="keyword">char</span> * strA = <span class="string">"abc"</span>;</div><div class="line"><span class="built_in">strcpy</span>(strDest, strA);</div><div class="line"><span class="built_in">strncat</span>(strDest, <span class="string">"123"</span>, <span class="number">2</span>);</div><div class="line"><span class="built_in">printf</span>(<span class="string">"%s \n"</span>, strDest); <span class="comment">// 打印出：abc12</span></div></pre></td></tr></table></figure>
+</li>
+<li><p>size_t strlcat(char * restrict dst, const char * restrict src, size_t size);<br>同strlcpy()，是保证进行字符串拼接时以字符串终止符结尾。第三个参数size应传入dst的长度。<br>在如下代码中，很明显dest的空间是不足以拼接”123456789”的，所以最后的拼接结果是“12345”+1个字符串终止符。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">char</span> strDest[<span class="number">6</span>];</div><div class="line"><span class="keyword">char</span> * strA = <span class="string">"123456789"</span>;</div><div class="line"><span class="keyword">int</span> result = strlcat(strDest, strA, <span class="keyword">sizeof</span>(strDest));</div><div class="line"><span class="built_in">printf</span>(<span class="string">"%s\n"</span>, strDest); <span class="comment">// 打印出“12345”</span></div><div class="line"><span class="keyword">if</span> (result)&#123;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%s be truncated.\n"</span>, strA);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>#字符串拼接单个char<br>c中没有现成的函数可以拼接单个char，这里需要用到指针进行赋值，如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">char</span> dest[<span class="number">5</span>];</div><div class="line"><span class="keyword">char</span> *str = <span class="string">"abc"</span>;</div><div class="line"><span class="comment">// 对dest赋值</span></div><div class="line"><span class="built_in">strcpy</span>(dest, str);</div><div class="line"><span class="keyword">char</span> * pDest;</div><div class="line">pDest = dest + <span class="built_in">strlen</span>(dest);</div><div class="line"><span class="comment">// 拼接单个字符串</span></div><div class="line">*pDest++ = <span class="string">'1'</span>;</div><div class="line">*pDest++ = <span class="number">0</span>; <span class="comment">// 字符串终止符</span></div><div class="line"></div><div class="line"><span class="comment">// 打印出：abc1 5 4 </span></div><div class="line"><span class="built_in">printf</span>(<span class="string">"%s %lu %lu \n"</span>, dest, <span class="keyword">sizeof</span>(dest), <span class="built_in">strlen</span>(dest));</div></pre></td></tr></table></figure></p>
+<p>#字符串长度<br>之所以把<code>字符串长度</code>放在<code>字符串拼接</code>之后，是为了更方便讲述理解。<br><code>#include &lt;string.h&gt;</code></p>
+<ul>
+<li>size_t strlen(const char *s);<br>strlen()直接计算参数<code>s</code>中字符的个数，直至碰到字符串终止符<code>\0</code>时停止计算。所以在<code>字符串拼接单个char</code>中，strlen(dest)返回结果是4。<br>但如果把代码稍作修改成如下，则strlen(dest)返回的结果可就不一定了。<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">char</span> dest[<span class="number">5</span>];</div><div class="line"><span class="keyword">char</span> *str = <span class="string">"abc"</span>;</div><div class="line"><span class="comment">// 对dest赋值</span></div><div class="line"><span class="built_in">strcpy</span>(dest, str);</div><div class="line"><span class="keyword">char</span> * pDest;</div><div class="line">pDest = dest + <span class="built_in">strlen</span>(dest);</div><div class="line"><span class="comment">// 拼接单个字符串</span></div><div class="line">*pDest++ = <span class="string">'1'</span>;</div><div class="line">*pDest++ = <span class="string">'2'</span>; <span class="comment">// 改动点：不以字符串终止符结尾</span></div><div class="line"></div><div class="line"><span class="comment">// 打印出：abc12\300\370\277_\377 5 11 内容是不固定的</span></div><div class="line"><span class="built_in">printf</span>(<span class="string">"%s %lu %lu \n"</span>, dest, <span class="keyword">sizeof</span>(dest), <span class="built_in">strlen</span>(dest));</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>可以看到，strlen()返回的长度已经超出了dest可容纳的最大值。所以该函数返回的结果存在一定的溢出风险。<br>如何解决该问题？可以使用下面的函数。</p>
+<ul>
+<li>size_t strnlen(const char *s, size_t maxlen);<br>strnlen()的第2个参数指定<code>s</code>的最大值，正常情况下和strlen()能力是一致的。区别在于strnlen()返回的最大值最多只能是<code>maxlen</code>。所以如果返回值为参数<code>maxlen</code>时，即可以判断出<code>s</code>是非正常的字符串终止符结尾，需要特别处理。见下示例代码。<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">int</span> n_len = strnlen(dest, <span class="keyword">sizeof</span>(dest));</div><div class="line"><span class="keyword">if</span> (n_len &gt;= <span class="keyword">sizeof</span>(dest))&#123;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"dest is not NUL-TERMINALED \n"</span>);</div><div class="line">&#125; <span class="keyword">else</span> &#123;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"dest.len=%d \n"</span>, n_len);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>#字符类别检查<br><code>#include &lt;ctype.h&gt;</code></p>
+<ul>
+<li>int isalnum(int c);<br>  返回1表示字符<code>c</code>是 大小写字母 或 数字;否则返回0。</li>
+<li>int isalpha(int c);<br>  返回1表示字符<code>c</code>是 大小写字母 ;否则返回0。<br>  相当于(isupper(c) || islower(c))。在某些locale设置下，有可能一些非字母字符也返回1。</li>
+<li>int isascii(int c);<br>  返回1表示字符<code>c</code>属于 ASCII字符集 ;否则返回0。</li>
+<li>int isblank(int c);<br>  返回1表示字符<code>c</code>是 空格 或 Tab符<code>\t</code>；否则返回0。注意有些系统或编辑器下的Tab符是由多个空格组成的，这种情况下返回0。</li>
+<li>int iscntrl(int c);<br>  返回1表示字符<code>c</code>是控制制服(c:[0:31…]等等)</li>
+<li>int isdigit(int c);<br>  返回1表示字符<code>c</code>属于0～9的数字；否则返回0。</li>
+<li>int isgraph(int c);<br>  返回1表示字符<code>c</code>属于印刷可见的字符(不包含空格)；否则返回0。大部分情况下返回结果和iscntrl(c)是相反的。</li>
+<li>int islower(int c);<br>  返回1表示是英文字母中的小写字符；否则返回0。</li>
+<li>int isprint(int c);<br>  同isgraph(c)，区别在于<code>c</code>是空格时也返回1。</li>
+<li>int ispunct(int c);<br>  返回1表示排除了空格及英文字母数字的可打印字符集；否则返回0。</li>
+<li>int isspace(int c);<br>  返回1时表示<code>c</code>属于 空格、\f、换行符‘\n’、回车’\r’、水平Tab<code>\t</code>、垂直Tab<code>\v</code>；否则返回0。</li>
+<li>int isupper(int c);<br>  返回1时表示<code>c</code>羽毛球英文字母中的大写字母。</li>
+<li>int isxdigit(int c);<br>  返回1时表示<code>c</code>属于数字十六进制表示形式中的字符(0~9、a~f、A~F);否则返回0。</li>
+</ul>
+<p>#字符串子串截取<br>c的类库中目前没有找到现成的字符串子串截取方法。<br>如果是想截取指定字符串从起始位置开始的前n个字符，可以使用<code>strncpy</code>或<code>memcpy</code>代替。<br>但如果是想字符串截取从第n个到第n+x个字符的子字符串，得自己实现了。示例代码如下：<br><figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div></pre></td><td class="code"><pre><div class="line"><span class="function"><span class="keyword">static</span></span></div><div class="line"><span class="keyword">char</span>* <span class="title">substring</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* src, <span class="keyword">const</span> <span class="keyword">int</span> idxStart, <span class="keyword">const</span> <span class="keyword">int</span> idxEnd)</span> &#123;</div><div class="line">    <span class="keyword">if</span> (<span class="built_in">strlen</span>(src) == <span class="number">0</span>) &#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"arg src.length is 0, return."</span>);</div><div class="line">        <span class="keyword">return</span> (<span class="keyword">void</span>*)<span class="number">0</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (idxEnd &gt; <span class="built_in">strlen</span>(src)) &#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"idxEnd=%d &gt; strlen(src)=%lu, return."</span>, idxEnd, <span class="built_in">strlen</span>(src));</div><div class="line">        <span class="keyword">return</span> (<span class="keyword">void</span>*)<span class="number">0</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">if</span> (idxStart &gt;= idxEnd) &#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"idxStart=%d &gt;= idxEnd=%d, return."</span>, idxStart, idxEnd);</div><div class="line">        <span class="keyword">return</span> (<span class="keyword">void</span>*)<span class="number">0</span>;</div><div class="line">    &#125;</div><div class="line">    <span class="comment">// 避免直接定义固定长度</span></div><div class="line">    <span class="keyword">int</span> length = idxEnd - idxStart + <span class="number">1</span>;</div><div class="line">    <span class="keyword">const</span> <span class="keyword">int</span> sub_length = length;</div><div class="line">    <span class="comment">// 使用malloc，避免在函数体结束之后即回回收导致函数返回值无法被使用。</span></div><div class="line">    <span class="comment">// 需要使用free()释放；</span></div><div class="line">    <span class="keyword">char</span> * pDest = (<span class="keyword">char</span>*)<span class="built_in">malloc</span>(sub_length);</div><div class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = idxStart;i &lt; idxEnd;i ++) &#123;</div><div class="line"><span class="comment">//        printf("src %c \n", *(src+i));</span></div><div class="line">        *(pDest + (i-idxStart)) = *(src+i);</div><div class="line"><span class="comment">//        printf("dest %c \n", *(pDest + (i-idxStart)));</span></div><div class="line">    &#125;</div><div class="line">    *(pDest+(idxEnd - idxStart)) = <span class="number">0</span>; <span class="comment">// 添加上字符串终止符</span></div><div class="line"><span class="comment">//    printf("pDest=%s %p\n", pDest, pDest);</span></div><div class="line">    <span class="keyword">return</span> pDest;</div><div class="line">&#125;</div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> * argv[])</span> </span>&#123;</div><div class="line">    <span class="keyword">char</span> * src = <span class="string">"abc123ABC"</span>;</div><div class="line">    <span class="keyword">char</span> *dest = substring(src, <span class="number">3</span>, <span class="number">6</span>);</div><div class="line">    <span class="comment">//打印出"123"</span></div><div class="line">    <span class="built_in">printf</span>(<span class="string">"substring1=[%s] \n"</span>, dest);</div><div class="line">    <span class="comment">// 不要了，回收掉</span></div><div class="line">    <span class="built_in">free</span>(dest);</div><div class="line">    <span class="comment">// 不需要了之后对指针置空，防止野指针</span></div><div class="line">    dest = <span class="literal">NULL</span>;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"%s \n"</span>, dest);</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
+<p>#字符串界位符切割<br><code>#include &lt;string.h&gt;</code></p>
+<ul>
+<li>char *strtok(char *str, const char *delim);</li>
+<li>char *strtok_r(char *str, const char <em>\delim, char \</em>*saveptr);<br>以上两个函数可以将指定的字符串切割成0个或数个非空子串.<br>以上两个函数在第一次调用时，第一个参数<code>str</code>传入待切割的长字符串；在下次循环调用之前需要把<code>str</code>置为NULL。<br>第2个参数<code>delim</code>指定切割关键字符集（所以可以包含多种情况）。<br>函数执行后的返回结果是切割后的子字符串，如果返回为NULL，则表示已经没有目标切割对象了，可以停止循环。<br>以下代码示例strtok()的使用，切割标准为<code>-</code>或<code>:</code>字符：<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">    <span class="keyword">char</span> * token;</div><div class="line">    <span class="keyword">char</span> original[] = <span class="string">"ab-cd;ef-gh"</span>;</div><div class="line">    <span class="keyword">char</span> * src = original;</div><div class="line">    <span class="keyword">char</span> * delim = <span class="string">";-"</span>;</div><div class="line">    <span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>;; i ++) &#123;</div><div class="line">        token = strtok(src, delim);</div><div class="line">        <span class="keyword">if</span> (token == <span class="literal">NULL</span>)&#123;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"%d:%s "</span>, i, token);</div><div class="line">        <span class="keyword">if</span> (src != <span class="literal">NULL</span>) &#123;</div><div class="line">            src = <span class="literal">NULL</span>; <span class="comment">// 对src置空</span></div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line"><span class="comment">// 打印出：0:ab 1:cd 2:ef 3:gh</span></div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>对src置空后，循环的调用仍可输出切割的子字符串结果，个人觉得应该是在strtok()方法体内使用了函数内静态参数的原因。</p>
+<p>strtok_r():strtok reentrant<br>strtok_r()是可重入版本的strtok()方法。第三个参数<code>saveptr</code>用于指向未进行切割处理的字符串子串。是指向指针的指针。这也是可重入计算的关键。<br>如下示例代码中演示了strtok_r()的可重入计算，即在循环体内再嵌套一个循环用第二种界位符对字符进行二次切割。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;ctype.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">const</span> <span class="keyword">char</span> * argv[])</span> </span>&#123;</div><div class="line">    <span class="keyword">char</span> *str1, *str2, *token, *subtoken;</div><div class="line">    <span class="keyword">char</span> *saveptr1, *saveptr2;</div><div class="line">    <span class="keyword">int</span> j;</div><div class="line">    </div><div class="line">    </div><div class="line">    <span class="keyword">if</span> (argc != <span class="number">4</span>) &#123;</div><div class="line">        <span class="built_in">fprintf</span>(<span class="built_in">stderr</span>, <span class="string">"Usage: %s string delim subdelim\n"</span>, argv[<span class="number">0</span>]);</div><div class="line">        <span class="built_in">exit</span>(EXIT_FAILURE);</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="keyword">const</span> <span class="keyword">unsigned</span> <span class="keyword">long</span> argv1_len = <span class="built_in">strlen</span>(argv[<span class="number">1</span>]);</div><div class="line">    <span class="keyword">char</span> argv1[argv1_len];</div><div class="line">    <span class="built_in">strcpy</span>(argv1, argv[<span class="number">1</span>]);</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"argv1=%s \n"</span>, argv1);</div><div class="line">    </div><div class="line"><span class="comment">//  for (j = 1, str1 = argv[1]; ; j++, str1 = NULL) &#123;</span></div><div class="line">    <span class="comment">// 这种写法，避免Assigning to 'char *' from 'const char *' discards qualifiers</span></div><div class="line">    <span class="keyword">for</span> (j = <span class="number">1</span>, str1 = argv1; ; j++, str1 = <span class="literal">NULL</span>) &#123;</div><div class="line">        token = strtok_r(str1, argv[<span class="number">2</span>], &amp;saveptr1);</div><div class="line">        <span class="keyword">if</span> (token == <span class="literal">NULL</span>)</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"%d: %s  %s\n"</span>, j, token, saveptr1);<span class="comment">// 当saveptr1为null时，则下个循环时strtok_r()返回结果亦为null</span></div><div class="line">        </div><div class="line">        <span class="keyword">for</span> (str2 = token; ; str2 = <span class="literal">NULL</span>) &#123;</div><div class="line">            subtoken = strtok_r(str2, argv[<span class="number">3</span>], &amp;saveptr2);</div><div class="line">            <span class="keyword">if</span> (subtoken == <span class="literal">NULL</span>)</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            <span class="built_in">printf</span>(<span class="string">" --&gt; %s \n"</span>, subtoken);</div><div class="line">        &#125;</div><div class="line">    &#125;</div><div class="line">    </div><div class="line">    <span class="built_in">exit</span>(EXIT_SUCCESS);</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>在命令行工具下执行命令，对长字符进行两次切割，先”-:”后”/“。<br>运行结果:<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div></pre></td><td class="code"><pre><div class="line">sodino:CString sodino$ ./a.out &quot;a-b-cd:ef/hi/jk:///lm://no-p:q&quot; &quot;-:&quot; &quot;/&quot;</div><div class="line">argv1=a-b-cd:ef/hi/jk:///lm://no-p:q </div><div class="line">1: a  b-cd:ef/hi/jk:///lm://no-p:q</div><div class="line"> --&gt; a </div><div class="line">2: b  cd:ef/hi/jk:///lm://no-p:q</div><div class="line"> --&gt; b </div><div class="line">3: cd  ef/hi/jk:///lm://no-p:q</div><div class="line"> --&gt; cd </div><div class="line">4: ef/hi/jk  ///lm://no-p:q</div><div class="line"> --&gt; ef </div><div class="line"> --&gt; hi </div><div class="line"> --&gt; jk </div><div class="line">5: ///lm  //no-p:q</div><div class="line"> --&gt; lm </div><div class="line">6: //no  p:q</div><div class="line"> --&gt; no </div><div class="line">7: p  q</div><div class="line"> --&gt; p </div><div class="line">8: q  (null)</div><div class="line"> --&gt; q</div></pre></td></tr></table></figure></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/C-C/">C/C++</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://sodino.com/2015/02/04/c-string-operate/" data-title="【C/C++】string操作方法汇总 | Sodino&#39;s Blog" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/03/04/mac-take-down/" title="【Mac】Mac超好用技巧">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  【Mac】Mac超好用技巧</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/02/01/c-printf-desc/"  title="【C/C++】printf()函数用法汇总">
+ <strong>NEXT:</strong><br/> 
+ <span>【C/C++】printf()函数用法汇总
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	<div class="social-list" class="clearfix">
+		
+		<a href="http://weibo.com/3822886122" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/sodino" target="_blank" title="github"></a>
+		
+		
+		
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/android/" title="Android">Android<sup>13</sup></a></li>
+		
+			<li><a href="/categories/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/categories/C-C/" title="C/C++">C/C++<sup>26</sup></a></li>
+		
+			<li><a href="/categories/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/categories/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/categories/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/categories/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/categories/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Android/" title="Android">Android<sup>18</sup></a></li>
+		
+			<li><a href="/tags/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>25</sup></a></li>
+		
+			<li><a href="/tags/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/tags/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/tags/NDK/" title="NDK">NDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/tags/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/tags/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/tags/object-Object/" title="[object Object]">[object Object]<sup>1</sup></a></li>
+		
+			<li><a href="/tags/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+			<li><a href="/tags/markdown/" title="markdown">markdown<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://blog.csdn.net/sodino" target="_blank" title="Sodino Csdn">CSDN's Blog</a></li>
+    </ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Android/" style="font-size: 18.75px;">Android</a> <a href="/tags/AndroidStudio/" style="font-size: 13.75px;">AndroidStudio</a> <a href="/tags/C-C/" style="font-size: 20px;">C/C++</a> <a href="/tags/Eclipse/" style="font-size: 10px;">Eclipse</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/JDK/" style="font-size: 10px;">JDK</a> <a href="/tags/JNI/" style="font-size: 11.25px;">JNI</a> <a href="/tags/Java/" style="font-size: 10px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/LBS/" style="font-size: 10px;">LBS</a> <a href="/tags/Linux/" style="font-size: 16.25px;">Linux</a> <a href="/tags/Mac/" style="font-size: 11.25px;">Mac</a> <a href="/tags/NDK/" style="font-size: 10px;">NDK</a> <a href="/tags/Node-js/" style="font-size: 17.5px;">Node.js</a> <a href="/tags/Proguard/" style="font-size: 11.25px;">Proguard</a> <a href="/tags/React-Native/" style="font-size: 10px;">React-Native</a> <a href="/tags/object-Object/" style="font-size: 10px;">[object Object]</a> <a href="/tags/blog/" style="font-size: 12.5px;">blog</a> <a href="/tags/markdown/" style="font-size: 10px;">markdown</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://sodino.com" target="_blank" title="Sodino">Sodino</a>
+		
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"sodino"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+<script>
+    
+        var _bdImg = '4';
+    
+    window._bd_share_config={
+        "common":{
+            "bdSnsKey":{
+
+            },
+            "bdText":"",
+            "bdMini":"2",
+            "bdMiniList":[
+                "qzone",
+                "tsina",
+                "weixin",
+                "renren",
+                "tqq",
+                "tieba",
+                "douban",
+                "sqq",
+                "diandian",
+                "huaban",
+                "youdao",
+                "mail",
+                "ty",
+                "fbook",
+                "twi",
+                "linkedin",
+                "copy",
+                "print"
+            ],
+            "bdPic":"",
+            "bdStyle":"0",
+            "bdSize":"16"
+        },
+        "slide":{
+            "type":"slide",
+            "bdImg":_bdImg,
+            "bdPos":"right",
+            "bdTop":"350"
+        },
+        "image":{
+            "viewList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ],
+            "viewText":"分享：",
+            "viewSize":"16"
+        },
+        "selectShare":{
+            "bdContainerClass":null,
+            "bdSelectMiniList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ]
+        }
+    };
+    with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'null', 'null');  
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+</html>
+

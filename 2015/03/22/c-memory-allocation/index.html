@@ -1,0 +1,584 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="baidu_union_verify" content="d1952c66cf48912e21c18c7c581f382a">
+  <meta name="360-site-verification" content="67fbcc5a67f4c65c057315b28fa0b2c8" />
+<meta name="google-site-verification" content="2GzxQ0VtXwTSUdmGm6DzcmhTzM_I9QmzCb_pzpMzD88" />
+  
+    <title>【C/C++】内存分配与释放(malloc、calloc、realloc、free) | Sodino&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Sodino">
+    
+    <meta name="description" content="本文结构
+
+内存区域
+函数讲解
+realloc的内存泄露陷井
+示例代码
+
+
+内存区域在程序的执行期间经常需要动态的分配内存。具体表现有在函数体内声明了一个变量、结构体或数组等，这样的内存是分配是由系统操作分配在栈上的，在执行完函数后，函数体内开头所声明的变量、结构体或数组所持有的内存空间都会被释放。">
+    
+    
+    
+    
+    <link rel="alternate" href="atom.xml" title="Sodino&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='391982416296a0d54221f59fe35250d4';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+     
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Sodino&#39;s Blog">Sodino&#39;s Blog</a></h1>
+				<a class="blog-motto">见多食广 与食巨近</a>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于我</a></li>
+					
+					<li>
+					
+                                            <form class="search" action=http://zhannei.baidu.com/cse/search target="_blank">
+                                            <label>Search</label>
+                                        <input name="s" type="hidden" value= null ><input type="text" name="q" size="30" placeholder="搜索"><br>
+					
+					</li>
+				</ul>
+                            </nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2015/03/22/c-memory-allocation/" title="【C/C++】内存分配与释放(malloc、calloc、realloc、free)" itemprop="url">【C/C++】内存分配与释放(malloc、calloc、realloc、free)</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://sodino.com" title="Sodino">Sodino</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2015-03-22T15:47:34.000Z" itemprop="datePublished">2015 03 22</time>
+    更新日期:<time datetime="2015-03-25T16:20:52.000Z" itemprop="dateModified">2015 03 26</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#内存区域"><span class="toc-number">1.</span> <span class="toc-text">内存区域</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#函数讲解"><span class="toc-number">2.</span> <span class="toc-text">函数讲解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#realloc的内存泄露陷井"><span class="toc-number">3.</span> <span class="toc-text">realloc的内存泄露陷井</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#示例代码"><span class="toc-number">4.</span> <span class="toc-text">示例代码</span></a></li></ol>
+		</div>
+		
+		<p>本文结构</p>
+<ul>
+<li><a href="#area">内存区域</a></li>
+<li><a href="#func">函数讲解</a></li>
+<li><a href="#mem_leak">realloc的内存泄露陷井</a></li>
+<li><a href="#demo">示例代码</a></li>
+</ul>
+<hr>
+<h1 id="内存区域"><a href="#内存区域" class="headerlink" title="内存区域"></a><a name="area">内存区域</a></h1><p>在程序的执行期间经常需要动态的分配内存。<br>具体表现有在函数体内声明了一个变量、结构体或数组等，这样的内存是分配是由系统操作分配在<strong>栈</strong>上的，在执行完函数后，函数体内开头所声明的变量、结构体或数组所持有的内存空间都会被释放。所以要将函数体内的执行结果返回或反映到函数体外，一般是行不通的(不考虑全局变量)。<br>还有一种是由coder们调用<code>malloc()</code>等内存分配函数在<strong>堆</strong>上开辟新内存块，这些内存块会一起存在直至调用<code>free()</code>函数去释放。作用域广了，但也引入了潜在的内存泄露(程序卡顿)和野指针(程序crash)问题。</p>
+<hr>
+<h1 id="函数讲解"><a href="#函数讲解" class="headerlink" title="函数讲解"></a><a name="func">函数讲解</a></h1><pre><code>#include &lt;stdlib.h&gt;
+
+void *malloc(size_t size);
+void *calloc(size_t nmemb, size_t size);
+void *realloc(void *ptr, size_t size);
+
+void free(void *ptr);
+</code></pre><p>引入<code>stdlib.h</code>头文件后可以在代码中操作内存的分配与释放。<br>下面来一一讲解下内存分配函数：</p>
+<ul>
+<li>void *malloc(size_t size);</li>
+</ul>
+<p><code>malloc()</code>函数分配了指定大小为<code>size</code>的字节数，这些字节块是没有被初始化的，也就是说有可能是非<code>\0</code>有值的。这也正是<code>malloc()</code>的缺点。如果<code>size</code>为0，则函数返回<code>NULL</code>；否则返回一个指向该内存块的指针，该指针可随后被<code>free()</code>调用释放。<br>函数的返回类型是<code>void *</code>，即任意类型，虽然很多编译器会把<code>malloc()</code>返回的地址自动转换成赋值语句左边的指针类型，但在编码中，习惯在<code>malloc()</code>赋值前做一次强制转换。<br>另外，由于可能在执行内存分配时刚好内存不足，函数也会返回一个<code>NULL</code>，所以对所返回的指针做非空判断。如下所示：</p>
+<pre><code>char* p = (char*)malloc(10 * sizeof(char));
+if (p == NULL) {
+     // handle null error
+} else {
+     // go on
+}
+</code></pre><ul>
+<li>void *calloc(size_t nmemb, size_t size);</li>
+</ul>
+<p><code>calloc()</code>解决了<code>malloc()</code>分配的内存块无初始化的问题，每个字节都被强制赋值为<code>\0</code>。还有另一个特点是把内存块分配为给定了大小的数组。即第一个参数<code>nmemb</code>指定了分配的元素个数，第二个参数<code>size</code>指定了单个元素的指定大小。<br>刚才<code>malloc()</code>的示例代码可以使用<code>calloc()</code>的话则可修改为：</p>
+<pre><code>char* p = (char*)calloc(10, sizeof(char));
+if (p == NULL) {
+     // handle null error
+} else {
+     // go on
+}
+</code></pre><ul>
+<li>void *realloc(void *ptr, size_t size)</li>
+</ul>
+<p>在程序运行中，碰到新的数据需要继续填充处理时发现原来的内存块已经不够了，则要开辟新更大的内存块以处理更多的数据，则就需要使用到<code>realloc()</code>函数了。<br><code>realloc()</code>函数的第一个参数<code>ptr</code>表示指向老的内存块的指针，第二个参数<code>sizt</code>则表示新的内存块大小。<br>开辟出新的内存块后，会把老内存块的数据复制到新内存块中；老内存块的空间会自动被系统回收。<br>所以如果新开辟的内存块比较老的内存块大，则前部分是老内存块的数据，后半部分则是未初始化的数据，即内容具有不确定性；如果新开辟的内存块比老的内存块小，则相当于复制了老内存块前半部分的内存到新的内存块中去了；<br>函数正常执行时，返回新内存块的首地址指针；如果函数执行失败，则返回<code>NULL</code>。<br>如果指定的<code>ptr</code>是<code>NULL</code>，则函数的作用相当于<code>malloc(size)</code>;<br>如果指定的<code>size</code>值为0，则相当于调用了<code>free(ptr)</code>去释放了原有的内存块；</p>
+<ul>
+<li>void free(void *ptr)</li>
+</ul>
+<p>释放指针<code>ptr</code>所指向的内存块。如果<code>ptr</code>是<code>NULL</code>，则相当于什么也没做。<br>当对<code>ptr</code>执行<code>free()</code>操作后，要及时对<code>ptr</code>赋值为空，避免野指针的出现或误操作。</p>
+<hr>
+<h1 id="realloc的内存泄露陷井"><a href="#realloc的内存泄露陷井" class="headerlink" title="realloc的内存泄露陷井"></a><a name="mem_leak">realloc的内存泄露陷井</a></h1><p>说是内存泄露陷井，其实是想说一个编码不规范的现象。挺多人在使用<code>realloc()</code>是这么写的：</p>
+<pre><code>char * p = (char *)malloc(10 * size(char));
+... ...
+// 发现内存不够用了
+p = realloc(p, 20 * size(char));
+</code></pre><p>这样子的代码，如果<code>realloc()</code>因某种原因执行失败导致返回<code>NULL</code>对<code>p</code>赋值，则失去了指向原先分配的<code>10 * size(char)</code>这个老内存块的指针，该老内存块再也无法通过<code>free()</code>函数释放了，导致内存泄露。<br>正确的写法应该是这样子的：</p>
+<pre><code>char * p = (char *)malloc(10 * size(char));
+... ...
+// 发现内存不够用了
+char * tmp = realloc(p, 20 * size(char));
+if (tmp == NULL) {
+  // realloc() do failed. do some action
+  return; // 这里选择return,也可以再尝试realloc一次或其它
+} else {
+    p = tmp;
+}
+// go on do something...
+</code></pre><hr>
+<h1 id="示例代码"><a href="#示例代码" class="headerlink" title="示例代码"></a><a name="demo">示例代码</a></h1><p>以下代码演示从命令行终端中不断获取输入字符的过程。<br>由于一开始内存分配仅分配够存储两个字符，当执行操作时就会出现空间不足需要调用<code>realloc()</code>再开辟更大的空间。</p>
+<p>其中示例代码中的函数<code>get_string()</code>见sodino另一篇文章<a href="http://sodino.com/2015/03/04/c-replace-gets/">【C/C++】使用getchar()实现gets()功能</a></p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdio.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;stdlib.h&gt;</span></span></div><div class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;string.h&gt;</span></span></div><div class="line"></div><div class="line"><span class="comment">//  Created by sodino on 15-3-13.</span></div><div class="line"><span class="comment">//  Copyright (c) 2015年 sodino. All rights reserved.</span></div><div class="line"></div><div class="line"><span class="keyword">int</span> main<span class="comment">/*04*/</span> (<span class="keyword">int</span> argc, <span class="keyword">char</span> ** argv) &#123;</div><div class="line">    <span class="keyword">long</span> cache = <span class="number">2</span>;</div><div class="line">    <span class="keyword">long</span> max_content = <span class="number">2</span>;</div><div class="line">    <span class="keyword">long</span> max_memory = max_content + <span class="number">1</span>; <span class="comment">// 最后一个位置留给字符串终止符</span></div><div class="line">    <span class="keyword">char</span> * pStore = <span class="built_in">calloc</span>(max_memory, <span class="keyword">sizeof</span>(<span class="keyword">char</span>));</div><div class="line">    <span class="keyword">if</span> (pStore == <span class="literal">NULL</span>) &#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"calloc() failed.\n"</span>);</div><div class="line">        <span class="keyword">return</span> EXIT_FAILURE;</div><div class="line">    &#125;</div><div class="line">    <span class="keyword">long</span> lenStore = <span class="number">0</span>;</div><div class="line">    <span class="keyword">long</span> remain = max_content;</div><div class="line">    </div><div class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"input char or input 'exit' to exit: \n"</span>);</div><div class="line">        <span class="comment">// 从命令行终端获取输入的字符，每次最多获取10个字符</span></div><div class="line">        <span class="keyword">char</span> * pChar = get_string(<span class="number">10</span>);</div><div class="line">        <span class="keyword">if</span> (<span class="built_in">strcmp</span>(pChar, <span class="string">"exit"</span>) == <span class="number">0</span>) &#123;</div><div class="line">            <span class="keyword">break</span>;</div><div class="line">        &#125;</div><div class="line">        </div><div class="line">        <span class="keyword">unsigned</span> <span class="keyword">long</span> t_len = <span class="built_in">strlen</span>(pChar);</div><div class="line">        <span class="keyword">if</span> (t_len &gt; remain) &#123;</div><div class="line">            <span class="built_in">printf</span>(<span class="string">"not enough memory. \n"</span>);</div><div class="line">            <span class="keyword">long</span> increase = t_len - remain;</div><div class="line">            max_memory = max_memory + increase + cache;</div><div class="line">            <span class="keyword">char</span> * pClone = pStore;</div><div class="line">            </div><div class="line">            <span class="comment">// 开辟更大的内存块...</span></div><div class="line">            pClone = <span class="built_in">realloc</span>(pClone, max_memory * <span class="keyword">sizeof</span>(<span class="keyword">char</span>));</div><div class="line">            <span class="keyword">if</span> (pClone == <span class="literal">NULL</span>) &#123;</div><div class="line">                <span class="comment">//</span></div><div class="line">                <span class="built_in">printf</span>(<span class="string">"OOM, break; pStore=%s \n"</span>, pStore);</div><div class="line">                <span class="keyword">break</span>;</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                <span class="comment">// 开拓内存成功</span></div><div class="line">                pStore = pClone;</div><div class="line">                remain = remain + increase + cache;</div><div class="line">                max_content = max_memory - <span class="number">1</span>;</div><div class="line">                <span class="built_in">printf</span>(<span class="string">"realloc(), new memory size=%lu max=%lu remain=%lu go to append string.\n"</span>, max_memory * <span class="keyword">sizeof</span>(<span class="keyword">char</span>), max_content, remain);</div><div class="line">            &#125;</div><div class="line">            </div><div class="line">            strlcat(pStore, pChar, max_memory);</div><div class="line"></div><div class="line">        &#125; <span class="keyword">else</span> &#123;</div><div class="line">            <span class="keyword">if</span> (<span class="built_in">strlen</span>(pStore) == <span class="number">0</span>) &#123;</div><div class="line">                <span class="built_in">strcat</span>(pStore, pChar);</div><div class="line">            &#125; <span class="keyword">else</span> &#123;</div><div class="line">                strlcat(pStore, pChar, max_memory);</div><div class="line">            &#125;</div><div class="line">        &#125;</div><div class="line">        lenStore = <span class="built_in">strlen</span>(pStore);</div><div class="line">        remain = max_content - lenStore;</div><div class="line">        <span class="built_in">printf</span>(<span class="string">"lenStore=%lu max=%lu remain=%lu content:%s \n"</span>, lenStore, max_content, remain, pStore);</div><div class="line">    &#125;</div><div class="line">    <span class="built_in">printf</span>(<span class="string">"end."</span>);</div><div class="line">    </div><div class="line">    <span class="comment">// 程序终止后释放内存</span></div><div class="line">    <span class="built_in">free</span>(pStore);</div><div class="line"></div><div class="line">    <span class="comment">// 保持习惯，及时置空</span></div><div class="line">    pStore = <span class="literal">NULL</span>;</div><div class="line"></div><div class="line">    <span class="keyword">return</span> EXIT_SUCCESS;</div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<p>运行效果如下图：<br><img src="http://ww2.sinaimg.cn/mw1024/e3dc9ceagw1eqieitkafgj20e006tgno.jpg" alt="memory_allocation_demo"></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/C-C/">C/C++</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/C-C/">C/C++</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://sodino.com/2015/03/22/c-memory-allocation/" data-title="【C/C++】内存分配与释放(malloc、calloc、realloc、free) | Sodino&#39;s Blog" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2015/03/26/c-union/" title="【C/C++】共用体Union">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  【C/C++】共用体Union</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2015/03/20/c-time-micro-nano/"  title="【C/C++】时间精确到微秒、纳秒">
+ <strong>NEXT:</strong><br/> 
+ <span>【C/C++】时间精确到微秒、纳秒
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#内存区域"><span class="toc-number">1.</span> <span class="toc-text">内存区域</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#函数讲解"><span class="toc-number">2.</span> <span class="toc-text">函数讲解</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#realloc的内存泄露陷井"><span class="toc-number">3.</span> <span class="toc-text">realloc的内存泄露陷井</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#示例代码"><span class="toc-number">4.</span> <span class="toc-text">示例代码</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	<div class="social-list" class="clearfix">
+		
+		<a href="http://weibo.com/3822886122" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/sodino" target="_blank" title="github"></a>
+		
+		
+		
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/android/" title="Android">Android<sup>13</sup></a></li>
+		
+			<li><a href="/categories/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/categories/C-C/" title="C/C++">C/C++<sup>26</sup></a></li>
+		
+			<li><a href="/categories/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/categories/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/categories/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/categories/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/categories/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Android/" title="Android">Android<sup>18</sup></a></li>
+		
+			<li><a href="/tags/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>25</sup></a></li>
+		
+			<li><a href="/tags/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/tags/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/tags/NDK/" title="NDK">NDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/tags/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/tags/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/tags/object-Object/" title="[object Object]">[object Object]<sup>1</sup></a></li>
+		
+			<li><a href="/tags/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+			<li><a href="/tags/markdown/" title="markdown">markdown<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://blog.csdn.net/sodino" target="_blank" title="Sodino Csdn">CSDN's Blog</a></li>
+    </ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Android/" style="font-size: 18.75px;">Android</a> <a href="/tags/AndroidStudio/" style="font-size: 13.75px;">AndroidStudio</a> <a href="/tags/C-C/" style="font-size: 20px;">C/C++</a> <a href="/tags/Eclipse/" style="font-size: 10px;">Eclipse</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/JDK/" style="font-size: 10px;">JDK</a> <a href="/tags/JNI/" style="font-size: 11.25px;">JNI</a> <a href="/tags/Java/" style="font-size: 10px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/LBS/" style="font-size: 10px;">LBS</a> <a href="/tags/Linux/" style="font-size: 16.25px;">Linux</a> <a href="/tags/Mac/" style="font-size: 11.25px;">Mac</a> <a href="/tags/NDK/" style="font-size: 10px;">NDK</a> <a href="/tags/Node-js/" style="font-size: 17.5px;">Node.js</a> <a href="/tags/Proguard/" style="font-size: 11.25px;">Proguard</a> <a href="/tags/React-Native/" style="font-size: 10px;">React-Native</a> <a href="/tags/object-Object/" style="font-size: 10px;">[object Object]</a> <a href="/tags/blog/" style="font-size: 12.5px;">blog</a> <a href="/tags/markdown/" style="font-size: 10px;">markdown</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://sodino.com" target="_blank" title="Sodino">Sodino</a>
+		
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"sodino"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+<script>
+    
+        var _bdImg = '4';
+    
+    window._bd_share_config={
+        "common":{
+            "bdSnsKey":{
+
+            },
+            "bdText":"",
+            "bdMini":"2",
+            "bdMiniList":[
+                "qzone",
+                "tsina",
+                "weixin",
+                "renren",
+                "tqq",
+                "tieba",
+                "douban",
+                "sqq",
+                "diandian",
+                "huaban",
+                "youdao",
+                "mail",
+                "ty",
+                "fbook",
+                "twi",
+                "linkedin",
+                "copy",
+                "print"
+            ],
+            "bdPic":"",
+            "bdStyle":"0",
+            "bdSize":"16"
+        },
+        "slide":{
+            "type":"slide",
+            "bdImg":_bdImg,
+            "bdPos":"right",
+            "bdTop":"350"
+        },
+        "image":{
+            "viewList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ],
+            "viewText":"分享：",
+            "viewSize":"16"
+        },
+        "selectShare":{
+            "bdContainerClass":null,
+            "bdSelectMiniList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ]
+        }
+    };
+    with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'null', 'null');  
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+</html>
+

@@ -1,0 +1,689 @@
+
+ <!DOCTYPE HTML>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="baidu_union_verify" content="d1952c66cf48912e21c18c7c581f382a">
+  <meta name="360-site-verification" content="67fbcc5a67f4c65c057315b28fa0b2c8" />
+<meta name="google-site-verification" content="2GzxQ0VtXwTSUdmGm6DzcmhTzM_I9QmzCb_pzpMzD88" />
+  
+    <title>【Android】Retrofit 的一些笔记 | Sodino&#39;s Blog</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, minimum-scale=1">
+    
+    <meta name="author" content="Sodino">
+    
+    <meta name="description" content="Retrofit ：A type-safe HTTP client for Android and Java.
+
+retrofit : noun. a component or accessory added to something after it has been manufactured
+
+">
+    
+    
+    
+    
+    <link rel="alternate" href="atom.xml" title="Sodino&#39;s Blog" type="application/atom+xml">
+    
+    
+    <link rel="icon" href="/img/favicon.ico">
+    
+    
+    <link rel="stylesheet" href="/css/style.css">
+    
+    <script>
+        var _hmt = _hmt || [];
+        (function() {
+            var hm = document.createElement("script");
+            var _bdId ='391982416296a0d54221f59fe35250d4';
+             hm.src = "//hm.baidu.com/hm.js?" + _bdId;
+             var s = document.getElementsByTagName("script")[0]; 
+             s.parentNode.insertBefore(hm, s);
+        })();
+    </script>
+     
+</head>
+
+  <body>
+    <header>
+      <div>
+		
+			<div id="textlogo">
+				<h1 class="site-name"><a href="/" title="Sodino&#39;s Blog">Sodino&#39;s Blog</a></h1>
+				<a class="blog-motto">见多食广 与食巨近</a>
+			</div>
+			<div class="navbar"><a class="navbutton navmobile" href="#" title="菜单">
+			</a></div>
+			<nav class="animated">
+				<ul>
+					<ul>
+					 
+						<li><a href="/">首页</a></li>
+					
+						<li><a href="/archives">归档</a></li>
+					
+						<li><a href="/about">关于我</a></li>
+					
+					<li>
+					
+                                            <form class="search" action=http://zhannei.baidu.com/cse/search target="_blank">
+                                            <label>Search</label>
+                                        <input name="s" type="hidden" value= null ><input type="text" name="q" size="30" placeholder="搜索"><br>
+					
+					</li>
+				</ul>
+                            </nav>			
+</div>
+
+    </header>
+    <div id="container">
+      <div id="main" class="post" itemscope itemprop="blogPost">
+	<article itemprop="articleBody"> 
+		<header class="article-info clearfix">
+  <h1 itemprop="name">
+    
+      <a href="/2017/02/22/retrofit-notes/" title="【Android】Retrofit 的一些笔记" itemprop="url">【Android】Retrofit 的一些笔记</a>
+  </h1>
+  <p class="article-author">By
+    
+      <a href="http://sodino.com" title="Sodino">Sodino</a>
+    </p>
+  <p class="article-time">
+    <time datetime="2017-02-22T03:12:34.000Z" itemprop="datePublished">2017 02 22</time>
+    更新日期:<time datetime="2017-02-22T03:24:13.000Z" itemprop="dateModified">2017 02 22</time>
+    
+  </p>
+</header>
+	<div class="article-content">
+		
+		
+		<div id="toc" class="toc-article">
+			<strong class="toc-title">文章目录</strong>
+		<ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Header的统一处理"><span class="toc-number">2.</span> <span class="toc-text">Header的统一处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#访问绝对路径"><span class="toc-number">3.</span> <span class="toc-text">访问绝对路径</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Map的使用避免声明冗余的类"><span class="toc-number">4.</span> <span class="toc-text">Map的使用避免声明冗余的类</span></a></li></ol>
+		</div>
+		
+		<hr>
+<p><a href="http://square.github.io/retrofit/" target="_blank" rel="external">Retrofit ：A type-safe HTTP client for Android and Java</a>.</p>
+<blockquote>
+<p>retrofit : noun. a component or accessory added to something after it has been manufactured</p>
+</blockquote>
+<p><a href="http://www.mocky.io/" target="_blank" rel="external">mocky.io: Mock your HTTP responses to test your REST API</a>   </p>
+<hr>
+<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本文默认<code>ConverterFactory</code>为<code>GsonConverterFactory</code>。  </p>
+<p>请求阶段</p>
+<ul>
+<li>Header的统一处理  </li>
+<li>访问绝对路径  </li>
+<li>Map的使用避免声明冗余的类  </li>
+<li>RequestBody为String 及 文件上传  </li>
+</ul>
+<p>返回阶段  </p>
+<ul>
+<li>后台Json空数据规范  </li>
+<li>空数据Void声明  </li>
+<li>ResponseBody为String  </li>
+<li>ResponseBody的多次读取  </li>
+<li>统一的错误处理  </li>
+</ul>
+<hr>
+<h2 id="Header的统一处理"><a href="#Header的统一处理" class="headerlink" title="Header的统一处理"></a>Header的统一处理</h2><p>使用<code>Interceptor</code>可为每一个<code>request</code>添加统一的<code>Header</code>信息   </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div></pre></td><td class="code"><pre><div class="line">public class OkHttpInterceptor implements okhttp3.Interceptor &#123;  </div><div class="line">    @Override  </div><div class="line">    public Response intercept(Chain chain) throws IOException &#123;  </div><div class="line">        Request originalRequest = chain.request();  </div><div class="line">  </div><div class="line">        Request newRequest = originalRequest.newBuilder()  </div><div class="line">                .header(&quot;sdkInt&quot;, Integer.toString(Build.VERSION.SDK_INT))  </div><div class="line">                .header(&quot;device&quot;, Build.DEVICE)  </div><div class="line">                .header(&quot;user-agent&quot;, &quot;android.sodino&quot;)  </div><div class="line">                .header(&quot;ticket&quot;, Constant.TICKET)  </div><div class="line">                .header(&quot;os&quot;, &quot;android&quot;)  </div><div class="line">                .header(&quot;version&quot;, &quot;2.6&quot;)  </div><div class="line">                .header(&quot;Content-Type&quot;, &quot;application/json&quot;)  </div><div class="line">                .build();  </div><div class="line">  </div><div class="line">        Response response = chain.proceed(newRequest);  </div><div class="line">        return response;  </div><div class="line">    &#125;  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">  </div><div class="line">  </div><div class="line">  </div><div class="line">public class RetrofitUtil &#123;  </div><div class="line">  </div><div class="line">    // 定义统一的HttpClient并添加拦截器  </div><div class="line">    private static OkHttpClient okHttpClient = new OkHttpClient.Builder()  </div><div class="line">                            .addInterceptor(new OkHttpInterceptor()).build();  </div><div class="line">  </div><div class="line">    public static Retrofit getComonRetrofit(String baseUrl) &#123;  </div><div class="line">        Retrofit retrofit = new Retrofit.Builder()  </div><div class="line">                .baseUrl(baseUrl)  </div><div class="line">                .addConverterFactory(GsonConverterFactory.create())  </div><div class="line">                .callbackExecutor(ThreadPool.getThreadsExecutor())  </div><div class="line">                .client(okHttpClient)  </div><div class="line">                .build();  </div><div class="line">  </div><div class="line">        return retrofit;  </div><div class="line">    &#125;  </div><div class="line">&#125;</div></pre></td></tr></table></figure>
+<hr>
+<h2 id="访问绝对路径"><a href="#访问绝对路径" class="headerlink" title="访问绝对路径"></a>访问绝对路径</h2><ol>
+<li><strong>@Url</strong><br><strong>@URL</strong> resolved against the base URL.</li>
+</ol>
+<p>这种方式是动态的灵活的，不需要提前预知的。  </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">@GET  </div><div class="line">Call&lt;ResponseBody&gt; list(@Url String url);</div></pre></td></tr></table></figure>
+<ol>
+<li><strong>endpoint</strong>为绝对路径  </li>
+</ol>
+<p>这种方式需要在编码时提前预知，与<code>baseUrl</code>的理念是相冲突的，不推荐使用这种方式。    </p>
+<p><img src="http://wx2.sinaimg.cn/large/e3dc9ceagy1fcy2b5io2oj20lp0i4gmj.jpg" alt="endpoint"></p>
+<hr>
+<h2 id="Map的使用避免声明冗余的类"><a href="#Map的使用避免声明冗余的类" class="headerlink" title="Map的使用避免声明冗余的类"></a><strong>Map</strong>的使用避免声明冗余的类</h2><p><em>QueryMap</em>为<em>Query</em>支持复杂的、不定数的字段。<br>对应的<em>Body</em>也可以通过定义参数类型为<em>Map</em>来避免声明冗余的类。 </p>
+<p>以下代码为了<code>Post</code>/<code>Put</code>的<code>Body</code>特别定义了个<code>IsReead</code>类，实现方式有些重！ </p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div></pre></td><td class="code"><pre><div class="line">public class IsRead &#123;  </div><div class="line">    public boolean is_read;  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">  </div><div class="line">public interface Api&#123;  </div><div class="line">    @Post // or @Put  </div><div class="line">    Call&lt;ResponseBody&gt; reqIsRead(@Body IsRead isRead);  </div><div class="line">&#125;  </div><div class="line">  </div><div class="line">  </div><div class="line">  </div><div class="line">  </div><div class="line">// send a post or put request  </div><div class="line">Api api = createApi();  </div><div class="line">IsRead isRead = new IsRead();  </div><div class="line">isRead.is_read = true;  </div><div class="line">api.reqIsRead(isRead);  </div><div class="line">  </div><div class="line">````  </div><div class="line">  </div><div class="line">与如下代码的功能是相同，但更简单明了的：</div></pre></td></tr></table></figure>
+<p>public interface Api{<br>    @Post // or @Put<br>    Call<responsebody> reqIsRead(@Body Map<string, boolean=""> map);<br>}  </string,></responsebody></p>
+<p>// send a post or put request<br>Api api = createApi();<br>Map<string, boolean=""> map = new HashMap&lt;&gt;();<br>map.put(“is_read”, true);<br>api.reqIsRead(map);<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"></div><div class="line">同样的，在请求的返回阶段，如果返回内容都是单纯的*key: value*，那*ResponseBody*也可以定义为*Map*。 </div><div class="line">不必每个接口都有对应的数据类。  </div><div class="line"></div><div class="line">-----------------------</div><div class="line"></div><div class="line">## RequestBody为String 及 文件上传 ## </div><div class="line"></div><div class="line">*App*中嵌套的*H5*页面传给*App*的内容是*Json*格式化的字符串，并要作为*Body*发起*Post*/*Put*请求，这时则希望*RequestBody*为*String*，则处理为：</div></pre></td></tr></table></figure></string,></p>
+<p>public interface Api {<br>    @Post // or @Put<br>    Call<responsebody> put(@Body RequestBody body);<br>}  </responsebody></p>
+<p>// send a post or put request  </p>
+<p>Api api = create(Api.class);  </p>
+<p>String reqString = string;<br>RequestBody body = RequestBody.create(MediaType.parse(“application/json”), reqString);<br>Call<responsebody> call = stringApi.post(body);<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">如果将*MediaType*改为图片、视频等对应的*MediaType*值，则很可很方便的实现文件上传接口：</div></pre></td></tr></table></figure></responsebody></p>
+<p>public interface Api {<br>    @Multipart<br>    @POST(ACT_POST_UPLOAD_PHOTO)<br>    Call<uploadphoto> reqUploadPhoto(@Part MultipartBody.Part file);<br>}  </uploadphoto></p>
+<p>// upload photo file  </p>
+<p>File file = getPhotoFile();  </p>
+<p>// create RequestBody instance from file<br>MediaType mediaType = MediaType.parse(“image/jpeg”);<br>RequestBody requestFile = RequestBody.create(mediaType, file);<br>// MultipartBody.Part is used to send also the actual file name<br>MultipartBody.Part body = MultipartBody.Part.createFormData(“file”, file.getName(), requestFile);  </p>
+<p>// Optional:<br>// add another part within the multipart request<br>// String descriptionString = “hello, this is description speaking”;<br>// RequestBody description = RequestBody.create(okhttp3.MultipartBody.FORM, descriptionString);  </p>
+<p>Call<uploadphoto> call = accountApi.reqPostUploadPhoto(/<em>description, </em>/body);<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"></div><div class="line">-----------------------</div><div class="line">## 后台Json空数据规范 ## </div><div class="line"></div><div class="line">客户端请求数据时，后台对空数据的返回应该是要有规范的，</div><div class="line">应该按Json格式返回 **[]** 空数组或 **&#123;&#125;** 空对象,不应什么都不返回.  </div><div class="line"></div><div class="line">什么都不返回会导致Json解析异常,会误导客户端判定连接为CMCC/ChinaNet等假网络,导致提示网络异常,与实际情况不符。 </div><div class="line"></div><div class="line">&gt; 喂喂，后台同学，都是开发狗，能不能别互相伤害  </div><div class="line"></div><div class="line">-----------------------</div><div class="line"></div><div class="line">## 空数据Void声明 ##</div><div class="line"></div><div class="line">如果只需要发个请求然后根据*response code*为*HTTP_OK(200)*即可，而不需要后台回吐额外的数据，在定义接口时可以声明*ResponseBody*为*Void*。</div></pre></td></tr></table></figure></uploadphoto></p>
+<p>public interface Api {<br>    @GET<br>    Call<void> reqIamOK();<br>}<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"></div><div class="line"></div><div class="line">-----------------------</div><div class="line"></div><div class="line">## ResponseBody为String ##</div><div class="line"></div><div class="line">当要将后台回吐的数据通过*App*传参给内嵌的*H5*页面时，这时希望*ResponseBody*为*String*，应该这么做：</div></pre></td></tr></table></figure></void></p>
+<pre><code>call.enqueue(new Callback&lt;ResponseBody&gt;() {  
+    @Override  
+    public void onResponse(Call&lt;ResponseBody&gt; call, Response&lt;ResponseBody&gt; response) {  
+        Log.d(&quot;Test&quot;, &quot;post() respCode=&quot; + response.code());  
+        try {  
+
+            String str = response.body().string();  
+            // do something……  
+
+
+
+        } catch (IOException e) {  
+            e.printStackTrace();  
+        }  
+    }  
+});  
+</code></pre><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div></pre></td><td class="code"><pre><div class="line"></div><div class="line">-----------------------</div><div class="line"></div><div class="line">## ResponseBody的多次读取 ## </div><div class="line"></div><div class="line">当试图去读取*response body*的原始数据时，由于是从网络上以*stream*的方式读取的，所以多次读取的话会抛如下异常：</div></pre></td></tr></table></figure>
+<p>java.lang.IllegalStateException: closed<br>            at com.squareup.okhttp.internal.http.HttpConnection$FixedLengthSource.read(HttpConnection.java:455)<br>            at okio.Buffer.writeAll(Buffer.java:594)<br>            at okio.RealBufferedSource.readByteArray(RealBufferedSource.java:87)<br>            at com.squareup.okhttp.ResponseBody.bytes(ResponseBody.java:56)<br>            at com.squareup.okhttp.ResponseBody.string(ResponseBody.java:82)<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"></div></pre></td></tr></table></figure></p>
+<p>ResponseBody responseBody = response.body();<br>BufferedSource source = responseBody.source();<br>source.request(Long.MAX_VALUE); // Buffer the entire body.<br>Buffer buffer = source.buffer();<br>String responseBodyString = buffer.clone().readString(Charset.forName(“UTF-8”))<br>Log.d(“TAG”, responseBodyString);<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div></pre></td><td class="code"><pre><div class="line"></div><div class="line"></div><div class="line">实现了多次读取的功能后，就可以进行下面的统一错误处理了。  </div><div class="line"></div><div class="line">参考：  </div><div class="line">[HttpLoggingInterceptor](https://github.com/square/okhttp/blob/master/okhttp-logging-interceptor/src/main/java/okhttp3/logging/HttpLoggingInterceptor.java#L219-L263)</div><div class="line"></div><div class="line">-----------------------</div><div class="line"></div><div class="line">## 统一的错误处理  ##  </div><div class="line"></div><div class="line">发起一次请求后可能产生的错误有：  </div><div class="line">1. 网络问题：  </div><div class="line">    * 无网络访问失败  </div><div class="line">    * 链接超时等IO异常  </div><div class="line">    * 假网络链接</div><div class="line"></div><div class="line">2. 后台提示错误： </div><div class="line">    * 请求参数不规范 </div><div class="line">    * 业务逻辑错误，如提交的内容包含敏感词  </div><div class="line">    * Json解析失败</div><div class="line">    * `response code`不是`HTTP_OK`  </div><div class="line"></div><div class="line">以上错误会分散在`Callback`的`onResponse()`及`onFailure()`中去。</div><div class="line">不利于技术层的数据统计及业务层的错误兼容。  </div><div class="line">那么在做统一的错误处理时，目标有：  </div><div class="line">* `onResponse()`是纯粹的`success`回调，剥离了`response code`或解析失败等异常。    </div><div class="line">* 能够读取后台返回的数据源进行处理后，不影响数据源的继续传播与解析。即上文提到的多次读取。   </div><div class="line"></div><div class="line">能够统一进行错误处理的方式有`Interceptor`及对`Callback`进行`override`。  </div><div class="line">个人选择`Callback override`的方式，个人观点希望每个类是尽可能可复用的，对于每一次`request`，都有对应的`Callback`，那么就不想再定义新的类(`Interceptor`)来处理。 </div><div class="line">而且每一个`request`都有新的`callback`的实例对象，也好进行一些个性化的错误处理。 </div><div class="line"></div><div class="line">新的`Callback`代码如下：</div></pre></td></tr></table></figure></p>
+<p>public abstract class MyCallback<t> implements Callback<t> {<br>    protected boolean showToast; // 本次request的错误是否弹toast提醒<br>    protected String logMark;<br>    public MyCallback() {<br>        showToast = true;<br>    }<br>    public MyCallback(boolean showToast) {<br>        this.showToast = showToast;<br>    }<br>    /**  </t></t></p>
+<pre><code> * Invoked for a received HTTP response.  
+ * &lt;p&gt;  
+ * Note: An HTTP response may still indicate an application-level failure such as a 404 or 500.  
+ * Call {@link Response#isSuccessful()} to determine if the response indicates success.  
+ */  
+@Override    
+public void onResponse(Call&lt;T&gt; call, Response&lt;T&gt; response){  
+    int respCode = response.code();  
+    Log.d(&quot;MyCallback&quot;, &quot;onResponse() url[&quot; + getLogMark(call) + &quot;]&quot; + respCode);  
+    if (respCode == HttpURLConnection.HTTP_OK) {    
+        onResponse(call, response, respCode);  
+    } else {  
+        ResponseBody responseBody = null;  
+        if (response != null) {  
+            responseBody = response.errorBody();  
+        }  
+        noHttpOK(respCode, responseBody);  
+
+        onFailure(call, null, response, respCode);  
+    }  
+}  
+
+protected void noHttpOK(int respCode, ResponseBody respBody) {  
+    int errorCode = 0;  
+    String responseBodyString = &quot;&quot;;  
+
+    if (respBody != null) {  
+        BufferedSource source = respBody.source();  
+        try {  
+            source.request(Long.MAX_VALUE); // Buffer the entire body.  
+        } catch (IOException e) {  
+            e.printStackTrace();  
+        }  
+        Buffer buffer = source.buffer();  
+        try {  
+            responseBodyString = buffer.clone().readString(Charset.forName(&quot;UTF-8&quot;));  
+
+            Log.d(&quot;MyCallback&quot;, &quot;noHttpOK() &quot; + responseBodyString);  
+        } catch (Throwable t) {  
+            t.printStackTrace();  
+        }  
+    }  
+
+    ErrorEn responseEn = null;  
+    try {  
+        responseEn = GsonUtil.fromJson(responseBodyString, ErrorEn.class);  
+    } catch (JsonSyntaxException jsExp) {  
+        jsExp.printStackTrace();  
+    }  
+
+    if (respCode == HttpURLConnection.HTTP_FORBIDDEN) {  
+        // permission error, do logout  
+        // do Logout  
+        Logout.do();  
+    } else if (respCode == HttpURLConnection.HTTP_BAD_GATEWAY) {  
+        if(showToast) {  
+            ToastUtil.showLongToast(BaseApplication.getInstance(),  
+                    BaseApplication.getInstance().getString(R.string.error_network) + &quot;(502)&quot;);  
+        }  
+    } else if (responseEn != null) {  
+        String strMsg = responseEn.message;  
+        if (respCode == HttpURLConnection.HTTP_PAYMENT_REQUIRED  
+                &amp;&amp; responseEn.errorCode == Login.ELSE_WHERE_LOGIN) {  
+            //  异地登录,会弹对话框,所以不需要Toast重复提示  
+            showToast = false;  
+        }  
+        if (TextUtils.isEmpty(strMsg) == false) {  
+            if (showToast) {    
+                ToastUtil.showToast(BaseApplication.getInstance(), strMsg);  
+            }  
+        }  
+    }  
+}  
+
+/**  
+ * Invoked when a network exception occurred talking to the server or when an unexpected  
+ * exception occurred creating the request or processing the response.  
+ */  
+@Override  
+public void onFailure(Call&lt;T&gt; call, Throwable t){  
+    if (t != null) {  
+        if(showToast) {  
+            ToastUtil.showLongToast(BaseApplication.getInstance(),  
+                    BaseApplication.getInstance().getString(R.string.error_network));  
+        }  
+
+        Log.d(&quot;MyCallback&quot;, &quot;onFailure() url[&quot; + getLogMark(call) + &quot;]&quot; + t.getMessage());  
+    }  
+    onFailure(call, t, null, -1);  
+}  
+
+/**  
+ * @param respCode HttpURLConnection.responseCode.  
+ * */  
+public abstract void onResponse(Call&lt;T&gt; call, Response&lt;T&gt; response, int respCode);  
+
+/**  
+ * @param  response 当服务器返回的respCode不符合预期时,此处response为{@link Callback#onResponse(Call, Response)}中的response  
+ * @param  respCode HttpURLConnection.responseCode.如果网络连续不成功/异常等,则值是-1.  
+ * */  
+public abstract void onFailure(Call&lt;T&gt; call, @Nullable Throwable t, @Nullable Response&lt;T&gt; response, int respCode);  
+</code></pre><p>}<br>````</p>
+<hr>
+<p><a href="http://sodino.com/about/">About Sodino</a></p>
+  
+	</div>
+		<footer class="article-footer clearfix">
+
+  <div class="article-tags">
+  
+  <span></span> <a href="/tags/Android/">Android</a>
+  </div>
+
+
+<div class="article-categories">
+  <span></span>
+  <a class="article-category-link" href="/categories/android/">Android</a>
+</div>
+
+
+
+<div class="article-share" id="share">
+
+  <div data-url="http://sodino.com/2017/02/22/retrofit-notes/" data-title="【Android】Retrofit 的一些笔记 | Sodino&#39;s Blog" data-tsina="null" class="share clearfix">
+  </div>
+
+</div>
+</footer>   	       
+	</article>
+	
+<nav class="article-nav clearfix">
+ 
+ <div class="prev" >
+ <a href="/2017/02/22/dexcount/" title="【Android】方法数查看工具---DexCount">
+  <strong>PREVIOUS:</strong><br/>
+  <span>
+  【Android】方法数查看工具---DexCount</span>
+</a>
+</div>
+
+
+<div class="next">
+<a href="/2017/01/20/android-transparent-statusbar/"  title="【Android】透明状态栏在App中的实现与接口设计">
+ <strong>NEXT:</strong><br/> 
+ <span>【Android】透明状态栏在App中的实现与接口设计
+</span>
+</a>
+</div>
+
+</nav>
+
+	
+<section class="comment">
+	<div class="ds-thread"></div>
+</section>
+
+</div>  
+      <div class="openaside"><a class="navbutton" href="#" title="显示侧边栏"></a></div>
+
+  <div id="toc" class="toc-aside">
+  <strong class="toc-title">文章目录</strong>
+  <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#前言"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Header的统一处理"><span class="toc-number">2.</span> <span class="toc-text">Header的统一处理</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#访问绝对路径"><span class="toc-number">3.</span> <span class="toc-text">访问绝对路径</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Map的使用避免声明冗余的类"><span class="toc-number">4.</span> <span class="toc-text">Map的使用避免声明冗余的类</span></a></li></ol>
+  </div>
+
+<div id="asidepart">
+<div class="closeaside"><a class="closebutton" href="#" title="隐藏侧边栏"></a></div>
+<aside class="clearfix">
+<div id="authorInfo">
+	
+		<div class="author-logo"></div>		
+	
+	<div class="social-list" class="clearfix">
+		
+		<a href="http://weibo.com/3822886122" target="_blank" title="weibo"></a>
+		
+		
+		
+		<a href="https://github.com/sodino" target="_blank" title="github"></a>
+		
+		
+		
+	</div>
+</div>
+
+  
+<div class="categorieslist">
+	<p class="asidetitle">分类</p>
+		<ul>
+		
+			<li><a href="/categories/android/" title="Android">Android<sup>13</sup></a></li>
+		
+			<li><a href="/categories/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/categories/C-C/" title="C/C++">C/C++<sup>26</sup></a></li>
+		
+			<li><a href="/categories/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/categories/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/categories/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/categories/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/categories/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/categories/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/categories/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/categories/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/categories/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/categories/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  
+<div class="tagslist">
+	<p class="asidetitle">标签</p>
+		<ul class="clearfix">
+		
+			<li><a href="/tags/Android/" title="Android">Android<sup>18</sup></a></li>
+		
+			<li><a href="/tags/AndroidStudio/" title="AndroidStudio">AndroidStudio<sup>5</sup></a></li>
+		
+			<li><a href="/tags/C-C/" title="C/C++">C/C++<sup>25</sup></a></li>
+		
+			<li><a href="/tags/Eclipse/" title="Eclipse">Eclipse<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Hexo/" title="Hexo">Hexo<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JDK/" title="JDK">JDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JNI/" title="JNI">JNI<sup>2</sup></a></li>
+		
+			<li><a href="/tags/Java/" title="Java">Java<sup>1</sup></a></li>
+		
+			<li><a href="/tags/JavaScript/" title="JavaScript">JavaScript<sup>6</sup></a></li>
+		
+			<li><a href="/tags/LBS/" title="LBS">LBS<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Linux/" title="Linux">Linux<sup>7</sup></a></li>
+		
+			<li><a href="/tags/Mac/" title="Mac">Mac<sup>2</sup></a></li>
+		
+			<li><a href="/tags/NDK/" title="NDK">NDK<sup>1</sup></a></li>
+		
+			<li><a href="/tags/Node-js/" title="Node.js">Node.js<sup>17</sup></a></li>
+		
+			<li><a href="/tags/Proguard/" title="Proguard">Proguard<sup>2</sup></a></li>
+		
+			<li><a href="/tags/React-Native/" title="React-Native">React-Native<sup>1</sup></a></li>
+		
+			<li><a href="/tags/object-Object/" title="[object Object]">[object Object]<sup>1</sup></a></li>
+		
+			<li><a href="/tags/blog/" title="blog">blog<sup>3</sup></a></li>
+		
+			<li><a href="/tags/markdown/" title="markdown">markdown<sup>1</sup></a></li>
+		
+		</ul>
+</div>
+
+
+  <div class="linkslist">
+  <p class="asidetitle">友情链接</p>
+    <ul>
+      <li><a href="http://blog.csdn.net/sodino" target="_blank" title="Sodino Csdn">CSDN's Blog</a></li>
+    </ul>
+</div>
+
+
+  <div class="rsspart">
+	<a href="atom.xml" target="_blank" title="rss">RSS 订阅</a>
+</div>
+
+  
+  <div class="tagcloudlist">
+    <p class="asidetitle">标签云</p>
+    <div class="tagcloudlist clearfix">
+       <a href="/tags/Android/" style="font-size: 18.75px;">Android</a> <a href="/tags/AndroidStudio/" style="font-size: 13.75px;">AndroidStudio</a> <a href="/tags/C-C/" style="font-size: 20px;">C/C++</a> <a href="/tags/Eclipse/" style="font-size: 10px;">Eclipse</a> <a href="/tags/Hexo/" style="font-size: 10px;">Hexo</a> <a href="/tags/JDK/" style="font-size: 10px;">JDK</a> <a href="/tags/JNI/" style="font-size: 11.25px;">JNI</a> <a href="/tags/Java/" style="font-size: 10px;">Java</a> <a href="/tags/JavaScript/" style="font-size: 15px;">JavaScript</a> <a href="/tags/LBS/" style="font-size: 10px;">LBS</a> <a href="/tags/Linux/" style="font-size: 16.25px;">Linux</a> <a href="/tags/Mac/" style="font-size: 11.25px;">Mac</a> <a href="/tags/NDK/" style="font-size: 10px;">NDK</a> <a href="/tags/Node-js/" style="font-size: 17.5px;">Node.js</a> <a href="/tags/Proguard/" style="font-size: 11.25px;">Proguard</a> <a href="/tags/React-Native/" style="font-size: 10px;">React-Native</a> <a href="/tags/object-Object/" style="font-size: 10px;">[object Object]</a> <a href="/tags/blog/" style="font-size: 12.5px;">blog</a> <a href="/tags/markdown/" style="font-size: 10px;">markdown</a>
+    </div>
+  </div>
+
+
+</aside>
+</div>
+    </div>
+    <footer><div id="footer" >
+    
+            <p class="copyright"> © 2017 
+		
+		<a href="http://sodino.com" target="_blank" title="Sodino">Sodino</a>
+		
+            && Powered by <a href="http://hexo.io" target="_blank" title="hexo">hexo</a>
+</div>
+</footer>
+    <script src="/js/jquery-2.1.0.min.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){ 
+  $('.navbar').click(function(){
+    $('header nav').toggleClass('shownav');
+  });
+  var myWidth = 0;
+  function getSize(){
+    if( typeof( window.innerWidth ) == 'number' ) {
+      myWidth = window.innerWidth;
+    } else if( document.documentElement && document.documentElement.clientWidth) {
+      myWidth = document.documentElement.clientWidth;
+    };
+  };
+  var m = $('#main'),
+      a = $('#asidepart'),
+      c = $('.closeaside'),
+      o = $('.openaside');
+  $(window).resize(function(){
+    getSize(); 
+    if (myWidth >= 1024) {
+      $('header nav').removeClass('shownav');
+    }else
+    {
+      m.removeClass('moveMain');
+      a.css('display', 'block').removeClass('fadeOut');
+      o.css('display', 'none');
+      
+      $('#toc.toc-aside').css('display', 'none');
+        
+    }
+  });
+  c.click(function(){
+    a.addClass('fadeOut').css('display', 'none');
+    o.css('display', 'block').addClass('fadeIn');
+    m.addClass('moveMain');
+  });
+  o.click(function(){
+    o.css('display', 'none').removeClass('beforeFadeIn');
+    a.css('display', 'block').removeClass('fadeOut').addClass('fadeIn');      
+    m.removeClass('moveMain');
+  });
+  $(window).scroll(function(){
+    o.css("top",Math.max(80,260-$(this).scrollTop()));
+  });
+});
+</script>
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var ai = $('.article-content>iframe'),
+      ae = $('.article-content>embed'),
+      t  = $('#toc'),
+      h  = $('article h2')
+      ah = $('article h2'),
+      ta = $('#toc.toc-aside'),
+      o  = $('.openaside'),
+      c  = $('.closeaside');
+  if(ai.length>0){
+    ai.wrap('<div class="video-container" />');
+  };
+  if(ae.length>0){
+   ae.wrap('<div class="video-container" />');
+  };
+  if(ah.length==0){
+    t.css('display','none');
+  }else{
+    c.click(function(){
+      ta.css('display', 'block').addClass('fadeIn');
+    });
+    o.click(function(){
+      ta.css('display', 'none');
+    });
+    $(window).scroll(function(){
+      ta.css("top",Math.max(140,320-$(this).scrollTop()));
+    });
+  };
+});
+</script>
+
+
+<script type="text/javascript">
+$(document).ready(function(){ 
+  var $this = $('.share'),
+      url = $this.attr('data-url'),
+      encodedUrl = encodeURIComponent(url),
+      title = $this.attr('data-title'),
+      tsina = $this.attr('data-tsina');
+  var html = [
+  '<a href="#" class="overlay" id="qrcode"></a>',
+  '<div class="qrcode clearfix"><span>扫描二维码分享到微信朋友圈</span><a class="qrclose" href="#share"></a><strong>Loading...Please wait</strong><img id="qrcode-pic" data-src="http://s.jiathis.com/qrcode.php?url=' + encodedUrl + '"/></div>',
+  '<a href="#textlogo" class="article-back-to-top" title="Top"></a>',
+  '<a href="https://www.facebook.com/sharer.php?u=' + encodedUrl + '" class="article-share-facebook" target="_blank" title="Facebook"></a>',
+  '<a href="#qrcode" class="article-share-qrcode" title="QRcode"></a>',
+  '<a href="https://twitter.com/intent/tweet?url=' + encodedUrl + '" class="article-share-twitter" target="_blank" title="Twitter"></a>',
+  '<a href="http://service.weibo.com/share/share.php?title='+title+'&url='+encodedUrl +'&ralateUid='+ tsina +'&searchPic=true&style=number' +'" class="article-share-weibo" target="_blank" title="Weibo"></a>',
+  '<span title="Share to"></span>'
+  ].join('');
+  $this.append(html);
+  $('.article-share-qrcode').click(function(){
+    var imgSrc = $('#qrcode-pic').attr('data-src');
+    $('#qrcode-pic').attr('src', imgSrc);
+    $('#qrcode-pic').load(function(){
+        $('.qrcode strong').text(' ');
+    });
+  });
+});     
+</script>
+
+
+<script type="text/javascript">
+  var duoshuoQuery = {short_name:"sodino"};
+  (function() {
+    var ds = document.createElement('script');
+    ds.type = 'text/javascript';ds.async = true;
+    ds.src = '//static.duoshuo.com/embed.js';
+    ds.charset = 'UTF-8';
+    (document.getElementsByTagName('head')[0] 
+    || document.getElementsByTagName('body')[0]).appendChild(ds);
+  })();
+</script> 
+
+
+
+
+
+<script>
+    
+        var _bdImg = '4';
+    
+    window._bd_share_config={
+        "common":{
+            "bdSnsKey":{
+
+            },
+            "bdText":"",
+            "bdMini":"2",
+            "bdMiniList":[
+                "qzone",
+                "tsina",
+                "weixin",
+                "renren",
+                "tqq",
+                "tieba",
+                "douban",
+                "sqq",
+                "diandian",
+                "huaban",
+                "youdao",
+                "mail",
+                "ty",
+                "fbook",
+                "twi",
+                "linkedin",
+                "copy",
+                "print"
+            ],
+            "bdPic":"",
+            "bdStyle":"0",
+            "bdSize":"16"
+        },
+        "slide":{
+            "type":"slide",
+            "bdImg":_bdImg,
+            "bdPos":"right",
+            "bdTop":"350"
+        },
+        "image":{
+            "viewList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ],
+            "viewText":"分享：",
+            "viewSize":"16"
+        },
+        "selectShare":{
+            "bdContainerClass":null,
+            "bdSelectMiniList":[
+                "weixin",
+                "qzone",
+                "tsina",
+                "renren",
+                "douban",
+                "tqq"
+            ]
+        }
+    };
+    with(document)0[(getElementsByTagName('head')[0]||body).appendChild(createElement('script')).src='http://bdimg.share.baidu.com/static/api/js/share.js?v=89860593.js?cdnversion='+~(-new Date()/36e5)];
+</script>
+
+
+
+
+<script type="text/javascript">
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+ga('create', 'null', 'null');  
+ga('send', 'pageview');
+</script>
+
+
+  </body>
+</html>
+
