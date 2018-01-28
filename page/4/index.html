@@ -76,15 +76,19 @@
 
   <section class="post" itemscope itemprop="blogPost">
   
-    <a href="/2015/07/05/lbs-theory/" title="【LBS】移动端LBS定位的原理、数据指标、失败分析、提升方案" itemprop="url">
+    <a href="/2015/01/14/execlp-am-start-browser/" title="【NDK】execlp命令打开浏览器访问指定网页" itemprop="url">
   
-      <time datetime="2015-07-05T07:13:05.000Z" itemprop="datePublished">2015 07 05</time>
-    <h1 itemprop="name">【LBS】移动端LBS定位的原理、数据指标、失败分析、提升方案</h1>
+      <time datetime="2015-01-14T14:30:21.000Z" itemprop="datePublished">2015 01 14</time>
+    <h1 itemprop="name">【NDK】execlp命令打开浏览器访问指定网页</h1>
     
      
-           <p itemprop="description" >对于定位，这里指以获取经纬度为最终目的，并可能伴随下发普遍的信息点包括省、市、区、街道名或更加详细的兴趣热点名(即设备所处位置周边的餐饮点、场馆点、医疗点等信息)。
-移动设备的定位目前主流的实现有：GPS 和 各种定位SDK(如高德、腾讯)。
-文章结构：GPS原理定位SDK原理定</p>
+           <p itemprop="description" >本文章将演示如何使用NDK编译生成可执行程序启动Android手机浏览器并打开指定网页。
+目录结构：
+
+[D]—-jni[f]——–exec.c[f]——–Android.mk
+
+其中exec.c源码如下：
+123456789101112131415#include &amp;lt;st</p>
         
     
   </a>
@@ -92,35 +96,16 @@
 
   <section class="post" itemscope itemprop="blogPost">
   
-    <a href="/2015/06/08/view-src-on-a-mac/" title="【Mac】使用Sublime Text查看Android源代码" itemprop="url">
+    <a href="/2015/01/14/c-main-function/" title="【C/C++】main()函数详解" itemprop="url">
   
-      <time datetime="2015-06-08T01:18:00.000Z" itemprop="datePublished">2015 06 08</time>
-    <h1 itemprop="name">【Mac】使用Sublime Text查看Android源代码</h1>
+      <time datetime="2015-01-14T04:55:02.000Z" itemprop="datePublished">2015 01 14</time>
+    <h1 itemprop="name">【C/C++】main()函数详解</h1>
     
      
-           <p itemprop="description" >文章结构
-
-前言
-使用Sublime Text查看Android源代码
-
-打开工程
-
-
-
-打开源码文件
-
-
-
-定位方法体
-
-
-
-定位属性
-
-
-
-
-#前言自从配置了一台iMac，sodino的工作开始转向在Mac平台开发了。先秀一下刚刚接手iMac时，我的工作台是这样子的…后来为了</p>
+           <p itemprop="description" >C/C++由于有许多不同的编译器，导致main()函数的格式存在一些差别。为了规范，本文只接受ANSI-C在C89/C99中规定的main()函数定义。个人所感，想到哪写到哪，比较跳跃。
+#main()函数定义
+main()函数存在以下两种形式:
+1234567891011/* </p>
         
     
   </a>
@@ -128,24 +113,14 @@
 
   <section class="post" itemscope itemprop="blogPost">
   
-    <a href="/2015/05/25/check-bitmap-size/" title="【Android】图片内存占用大小的计算与验证" itemprop="url">
+    <a href="/2015/01/13/android-get-cpu-abi/" title="获取Android手机的CPU架构信息" itemprop="url">
   
-      <time datetime="2015-05-25T12:51:30.000Z" itemprop="datePublished">2015 05 25</time>
-    <h1 itemprop="name">【Android】图片内存占用大小的计算与验证</h1>
+      <time datetime="2015-01-13T10:16:57.000Z" itemprop="datePublished">2015 01 13</time>
+    <h1 itemprop="name">获取Android手机的CPU架构信息</h1>
     
      
-           <p itemprop="description" >一张图片的文件可能只有几KB、十几KB或几十KB，但在内存中解码后，所占用的内存空间是多大呢？
-本篇文章将提供图片内存占用大小的计算与验证方法。
-文章内容：
-
-图片内存占用的计算方法
-解码方式的建议
-编码实现
-MAT验证
-
-
-# 图片内存占用的计算方法
-Android中一张图片（</p>
+           <p itemprop="description" >编译NDK生成的so库文件需要与cpu架构信息对应。查看Android手机的cpu架构信息可以在以下两个命令中任选：
+sodino:~ sodino$ adb shell getprop | grep cpu[ro.product.cpu.abi2]:  [armeabi] [r</p>
         
     
   </a>
@@ -153,18 +128,15 @@ Android中一张图片（</p>
 
   <section class="post" itemscope itemprop="blogPost">
   
-    <a href="/2015/05/11/jni-find-jni-header-for-mac-os/" title="【JNI】Find &#39;jni.h&#39; for MacOS" itemprop="url">
+    <a href="/2015/01/13/avoid-hardcoding-the-debug-mode/" title="‘Avoid hardcoding the debug mode’的解决" itemprop="url">
   
-      <time datetime="2015-05-11T04:57:20.000Z" itemprop="datePublished">2015 05 11</time>
-    <h1 itemprop="name">【JNI】Find &#39;jni.h&#39; for MacOS</h1>
+      <time datetime="2015-01-13T02:48:36.000Z" itemprop="datePublished">2015 01 13</time>
+    <h1 itemprop="name">‘Avoid hardcoding the debug mode’的解决</h1>
     
      
-           <p itemprop="description" >download jdk8 and install.
-
-check java version:
-sodino:~ sodino$ java -version
-java version &amp;quot;1.8.0_45&amp;quot;
-Java(TM) SE Runtime Environ</p>
+           <p itemprop="description" >#问题SDK Tools Revision 8以后，如果在AndroidManifest.xml中直接设置1android:debuggable=&quot;true&quot;
+则Eclipse会报错如下：
+Avoid hardcoding the debug mode; leaving it o</p>
         
     
   </a>
@@ -172,15 +144,15 @@ Java(TM) SE Runtime Environ</p>
 
   <section class="post" itemscope itemprop="blogPost">
   
-    <a href="/2015/05/10/jni-functions-manual/" title="【JNI】jni.h函数详解手册--The Java(TM) Native Interface" itemprop="url">
+    <a href="/2015/01/12/dlopen-usage-demo/" title="【NDK】使用dlopen加载动态链接库(lib**.so)" itemprop="url">
   
-      <time datetime="2015-05-10T13:33:00.000Z" itemprop="datePublished">2015 05 10</time>
-    <h1 itemprop="name">【JNI】jni.h函数详解手册--The Java(TM) Native Interface</h1>
+      <time datetime="2015-01-12T11:36:41.000Z" itemprop="datePublished">2015 01 12</time>
+    <h1 itemprop="name">【NDK】使用dlopen加载动态链接库(lib**.so)</h1>
     
      
-           <p itemprop="description" >一直觉得jni文档太少了，#include &amp;lt;jni.h&amp;gt;后，看着函数名大概能猜出函数意思来，但心里一直不放心，搜索来去也没有找到详细靠谱的文档。
-直到现在，发现了！
-“The Java(TM) Native Interface–Programmer’s Guide </p>
+           <p itemprop="description" >肚子饿了，先简单做下记录，吃饱了再来丰富..
+为了方便编译生成so及binary，仍然在Eclipse+CDT+NDK环境中构建。工程结构图如下：
+comparison.c将编译生成待加载的动态链接库libComparison.so，其代码如下：12345678#ifndef _</p>
         
     
   </a>
@@ -188,21 +160,15 @@ Java(TM) SE Runtime Environ</p>
 
   <section class="post" itemscope itemprop="blogPost">
   
-    <a href="/2015/04/19/c-signal/" title="【C/C++】多进程：信号量的监听与处理函数" itemprop="url">
+    <a href="/2015/01/12/build-executables-for-android-using-NDK/" title="【NDK】编译生成直接运行在Android系统的可执行文件" itemprop="url">
   
-      <time datetime="2015-04-19T14:38:58.000Z" itemprop="datePublished">2015 04 19</time>
-    <h1 itemprop="name">【C/C++】多进程：信号量的监听与处理函数</h1>
+      <time datetime="2015-01-12T08:20:46.000Z" itemprop="datePublished">2015 01 12</time>
+    <h1 itemprop="name">【NDK】编译生成直接运行在Android系统的可执行文件</h1>
     
      
-           <p itemprop="description" >文章结构：
-
-wait()的阻塞问题
-signal()函数讲解
-示例代码
-
-
-#wait()的阻塞问题
-　　之前的多进程：父进程监听子进程状态 wait()的使用文章中，父进程为了获取子进程的SIGSTOP、SIGTERM等信号时，由于调用了wait而导致主进程一直阻塞。在实际的</p>
+           <p itemprop="description" >本文将演示如何编译生成直接运行在Android系统的可执行文件。
+开发环境：Eclipse + NDK + CDT(脱离eclipse + cdt的编译在文末介绍)
+1.在Eclipse的Java视图中，新建一个工程名为”Execute”2.右击工程-&amp;gt; Android T</p>
         
     
   </a>
@@ -210,13 +176,15 @@ signal()函数讲解
 
   <section class="post" itemscope itemprop="blogPost">
   
-    <a href="/2015/04/18/c-zombie-process/" title="【C/C++】多进程：僵尸进程" itemprop="url">
+    <a href="/2015/01/12/g-compile-cpp/" title="g++编译Hello World生成可执行文件" itemprop="url">
   
-      <time datetime="2015-04-18T02:35:19.000Z" itemprop="datePublished">2015 04 18</time>
-    <h1 itemprop="name">【C/C++】多进程：僵尸进程</h1>
+      <time datetime="2015-01-12T04:17:33.000Z" itemprop="datePublished">2015 01 12</time>
+    <h1 itemprop="name">g++编译Hello World生成可执行文件</h1>
     
      
-           <p itemprop="description" >一个僵尸进程产生的过程是：父进程调用fork创建子进程后，子进程运行至其终止。进程终止后有些信息对于父进程和内核还是很有用的，例如进程的ID号、进程的退出状态、进程运行的CPU时间等。因此进程运行终止后，系统会回收所有内核分配给它的内存、关闭它所打开的文件等，但是还会保留以上极少</p>
+           <p itemprop="description" >本文记录g++编译生成可执行文件的操作步骤。
+1.准备Hello World源码，见下。
+12345678#include &amp;lt;iostream&amp;gt;using namespace std;int main () &amp;#123;    cout &amp;lt;&amp;lt; &quot;Hello</p>
         
     
   </a>
@@ -224,23 +192,15 @@ signal()函数讲解
 
   <section class="post" itemscope itemprop="blogPost">
   
-    <a href="/2015/04/14/c-wait/" title="【C/C++】多进程：父进程监听子进程状态 wait()的使用" itemprop="url">
+    <a href="/2015/01/07/hexo-take-down/" title="Hexo 使用备忘" itemprop="url">
   
-      <time datetime="2015-04-14T14:28:49.000Z" itemprop="datePublished">2015 04 14</time>
-    <h1 itemprop="name">【C/C++】多进程：父进程监听子进程状态 wait()的使用</h1>
+      <time datetime="2015-01-07T15:32:43.000Z" itemprop="datePublished">2015 01 07</time>
+    <h1 itemprop="name">Hexo 使用备忘</h1>
     
      
-           <p itemprop="description" >文章结构：
-
-wait能力介绍
-wait()函数讲解
-示例代码及操作演示
-
-
-#wait能力介绍
-　　在上一篇【C/C++】多进程：子进程的创建fork()中演示了子进程的创建。
-　　创建子进程后，父进程具有监听子进程的运行状态的能力，用到的函数为：
-#include &amp;lt;s</p>
+           <p itemprop="description" >markdown 设置页面锚点(Anchor)效果：点击这里跳转至文章结尾
+使用的是html代码，生成锚点的代码为：1&amp;lt;a name=“anchor_name”/&amp;gt; 正文文字示例:文章结尾
+在本文文章开头要使用锚点时，markdown内容如下：1效果：点击[这里](#</p>
         
     
   </a>
@@ -248,22 +208,14 @@ wait()函数讲解
 
   <section class="post" itemscope itemprop="blogPost">
   
-    <a href="/2015/04/11/c-fork/" title="【C/C++】多进程：子进程的创建fork()" itemprop="url">
+    <a href="/2015/01/07/linear-layout-weight-different/" title="LinearLayout layout_weight划分区域的两种表现" itemprop="url">
   
-      <time datetime="2015-04-11T11:45:34.000Z" itemprop="datePublished">2015 04 11</time>
-    <h1 itemprop="name">【C/C++】多进程：子进程的创建fork()</h1>
+      <time datetime="2015-01-07T13:52:11.000Z" itemprop="datePublished">2015 01 07</time>
+    <h1 itemprop="name">LinearLayout layout_weight划分区域的两种表现</h1>
     
      
-           <p itemprop="description" >文章结构：
-
-进程结构
-fork函数
-示例代码
-frok使用场景
-
-
-#进程结构
-　　Linux下一个进程在内存里有三部分的数据，就是”代码段”、”堆栈段”和”数据段”。接触过汇编语言的人了解，一般的CPU都有上述三种段寄存器，以方便操作系统的运行。这三个部分也是构成一个完整的执</p>
+           <p itemprop="description" >使用LinearLayout对水平空间进行分隔时可以使用layout_weight来划分。今天发现了一个奇怪的现象，如下图，仅做记录。使用LinearLayout二分水平区域给两个Button，都同时设置layout_weight=”1”.
+对layout_width设置为”wr</p>
         
     
   </a>
@@ -271,18 +223,13 @@ frok使用场景
 
   <section class="post" itemscope itemprop="blogPost">
   
-    <a href="/2015/04/08/c-sysinfo-uname/" title="【C/C++】获取系统信息:uname" itemprop="url">
+    <a href="/2015/01/06/gradle-download-https-services-gradle-org/" title="‘Gradle download https://services.gradle.org’长时间等待的解决" itemprop="url">
   
-      <time datetime="2015-04-08T14:51:38.000Z" itemprop="datePublished">2015 04 08</time>
-    <h1 itemprop="name">【C/C++】获取系统信息:uname</h1>
+      <time datetime="2015-01-06T15:04:57.000Z" itemprop="datePublished">2015 01 06</time>
+    <h1 itemprop="name">‘Gradle download https://services.gradle.org’长时间等待的解决</h1>
     
      
-           <p itemprop="description" >获取当前Linux/Mac的系统信息可以通过函数uname来实现。
-#include &amp;lt;sys/utsname.h&amp;gt;
-int uname(struct utsname *name);
-
-#define    _SYS_NAMELEN    256
-struct    </p>
+           <p itemprop="description" >使用Android Studio时，创建工程或导入工程时，卡在一个步骤上一直没反映“Gradle download https://services.gradle.org”。经查，直接在本地安装Gradle即可正常跳过。在Mac OS下，安装gradle的步骤为即可，效果见下图。</p>
         
     
   </a>
@@ -290,44 +237,14 @@ struct    </p>
 
   <section class="post" itemscope itemprop="blogPost">
   
-    <a href="/2015/04/08/c-exec-family/" title="【C/C++】exec函数族的使用" itemprop="url">
+    <a href="/2014/12/28/android-studio-keymap/" title="Android Studio快捷键 记录" itemprop="url">
   
-      <time datetime="2015-04-08T02:48:03.000Z" itemprop="datePublished">2015 04 08</time>
-    <h1 itemprop="name">【C/C++】exec函数族的使用</h1>
+      <time datetime="2014-12-28T07:33:01.000Z" itemprop="datePublished">2014 12 28</time>
+    <h1 itemprop="name">Android Studio快捷键 记录</h1>
     
      
-           <p itemprop="description" >文章结构：
-
-exec函数族
-函数分类
-函数参数潜规则
-函数示例
-
-execl
-
-
-
-execv
-
-
-
-execlp() execvp()
-
-
-环境变量
-
-打印环境变量
-
-
-
-传递环境变量
-
-
-
-
-#exec函数族
-通常所说的exec是指一组函数，如下共6个：
-#include </p>
+           <p itemprop="description" >#Android Studio快捷键 记录
+编辑区的光标跳转：  跳转到文件开头    mac: fn + command + 左箭头  跳转到文件结尾    mac: fn + command + 右箭头  跳转到当前显示区域开头    mac: fn + command + </p>
         
     
   </a>
@@ -335,22 +252,15 @@ execlp() execvp()
 
   <section class="post" itemscope itemprop="blogPost">
   
-    <a href="/2015/03/28/c-varying-args-function/" title="【C/C++】不定参数函数" itemprop="url">
+    <a href="/2014/12/25/proguard-error-in-Java-Annotation/" title="Proguard混淆Java注解(Annotation)导致方法重名现象说明及解决" itemprop="url">
   
-      <time datetime="2015-03-28T05:05:27.000Z" itemprop="datePublished">2015 03 28</time>
-    <h1 itemprop="name">【C/C++】不定参数函数</h1>
+      <time datetime="2014-12-25T14:53:36.000Z" itemprop="datePublished">2014 12 25</time>
+    <h1 itemprop="name">Proguard混淆Java注解(Annotation)导致方法重名现象说明及解决</h1>
     
      
-           <p itemprop="description" >文章结构：
-
-不定参数函数形式
-宏定义讲解
-示例代码:实现print()函数
-
-
-不定参数函数形式在标准库中，某些函数的参数数量是不固定，是可变的，例如print()等。
-不定参数的形式一般为：
-type function_name(type arg1, [type arg_n]</p>
+           <p itemprop="description" >#现象
+测试同学反映编译出来的release版本的包无法正常运行，debug倒是正常的。一查日志，发现是类文件saveInSP找不到。如下图：这种现象一比较，直觉是proguard混淆出错了。来验证直觉吧。
+#验证反编译release apk，发现确实找不着saveInSP这个类</p>
         
     
   </a>
@@ -358,50 +268,13 @@ type function_name(type arg1, [type arg_n]</p>
 
   <section class="post" itemscope itemprop="blogPost">
   
-    <a href="/2015/03/26/c-union/" title="【C/C++】共用体Union" itemprop="url">
+    <a href="/2014/12/17/HexoArticle/" title="HexoArticle" itemprop="url">
   
-      <time datetime="2015-03-26T13:45:12.000Z" itemprop="datePublished">2015 03 26</time>
-    <h1 itemprop="name">【C/C++】共用体Union</h1>
+      <time datetime="2014-12-17T00:11:10.000Z" itemprop="datePublished">2014 12 17</time>
+    <h1 itemprop="name">HexoArticle</h1>
     
      
-           <p itemprop="description" >12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849/* * UnionLab.cpp * *  Created on: Nov 29, 2014 *  </p>
-        
-    
-  </a>
-</section>
-
-  <section class="post" itemscope itemprop="blogPost">
-  
-    <a href="/2015/03/22/c-memory-allocation/" title="【C/C++】内存分配与释放(malloc、calloc、realloc、free)" itemprop="url">
-  
-      <time datetime="2015-03-22T15:47:34.000Z" itemprop="datePublished">2015 03 22</time>
-    <h1 itemprop="name">【C/C++】内存分配与释放(malloc、calloc、realloc、free)</h1>
-    
-     
-           <p itemprop="description" >本文结构
-
-内存区域
-函数讲解
-realloc的内存泄露陷井
-示例代码
-
-
-内存区域在程序的执行期间经常需要动态的分配内存。具体表现有在函数体内声明了一个变量、结构体或数组等，这样的内存是分配是由系统操作分配在栈上的，在执行完函数后，函数体内开头所声明的变量、结构体或数组所持有的</p>
-        
-    
-  </a>
-</section>
-
-  <section class="post" itemscope itemprop="blogPost">
-  
-    <a href="/2015/03/20/c-time-micro-nano/" title="【C/C++】时间精确到微秒、纳秒" itemprop="url">
-  
-      <time datetime="2015-03-20T11:59:42.000Z" itemprop="datePublished">2015 03 20</time>
-    <h1 itemprop="name">【C/C++】时间精确到微秒、纳秒</h1>
-    
-     
-           <p itemprop="description" >在之前的文章【C/C++】日常时间的获取、格式化等操作汇总中讲到的时间都是以秒为精度的。有时候需要确定某个事件的准确时间，就得把精度提高到毫秒(millsecond)、微秒(microsecond)、纳秒(nanosecond,很少用)。这里将讲解并演示如何使用。
-C语言中所支持</p>
+           <p itemprop="description" >这是第一篇使用makeup编辑的文章。</p>
         
     
   </a>
@@ -409,7 +282,7 @@ C语言中所支持</p>
 
 
   <nav id="page-nav" class="clearfix">
-    <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><a class="extend next" rel="next" href="/page/5/">Next &raquo;</a>
+    <a class="extend prev" rel="prev" href="/page/3/">&laquo; Prev</a><a class="page-number" href="/">1</a><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="page-number current">4</span>
   </nav>
 
 </div>
@@ -547,7 +420,7 @@ C语言中所支持</p>
   </div>
   <footer><div id="footer" >
     
-            <p class="copyright"> © 2017 
+            <p class="copyright"> © 2018 
 		
 		<a href="http://sodino.com" target="_blank" title="Sodino">Sodino</a>
 		
